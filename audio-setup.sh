@@ -1,17 +1,17 @@
 #!/bin/bash
 
-function get_alvr_playback_sink_id() {
+function get_alvr_playback_source_id() {
   local last_node_name=''
   local last_node_id=''
-  pactl list sink-inputs | while read -r line; do
-    node_id=$(echo "$line" | grep -oP 'Sink Input #\K.+' | sed -e 's/^[ \t]*//')
+  pactl list $1 | while read -r line; do
+    node_id=$(echo "$line" | grep -oP "$2 #\K.+" | sed -e 's/^[ \t]*//')
     node_name=$(echo "$line" | grep -oP 'node.name = "\K[^"]+' | sed -e 's/^[ \t]*//')
     if [[ "$node_id" != '' ]] && [[ "$last_node_id" != "$node_id" ]]; then
       last_node_id="$node_id"
     fi
     if [[ -n "$node_name" ]] && [[ "$last_node_name" != "$node_name" ]]; then
       last_node_name="$node_name"
-      if [[ "$last_node_name" == "alsa_playback.vrserver" ]]; then
+      if [[ "$last_node_name" == "$3" ]]; then
         echo "$last_node_id"
         return
       fi
@@ -34,7 +34,14 @@ function setup_mic() {
   # We link them together
   pw-link ALVR-MIC-Sink ALVR-MIC-Source
   # And we assign playback of pipewire alsa playback to created alvr sink
-  pactl move-sink-input "$(get_alvr_playback_sink_id)" "$(get_sink_id ALVR-MIC-Sink)"
+  pactl move-sink-input "$(get_alvr_playback_source_id sink-inputs 'Sink Input' alsa_playback.vrserver)" "$(get_sink_id ALVR-MIC-Sink)"
+}
+
+function setup_audio() {
+  echo "Setting up audio"
+  pactl load-module module-null-sink sink_name=ALVR-AUDIO-Sink media.class=Audio/Sink
+  pactl set-default-sink ALVR-AUDIO-Sink
+  pactl move-source-output "$(get_alvr_playback_source_id source-outputs 'Source Output' alsa_capture.vrserver)" "$(get_sink_id ALVR-AUDIO-Sink)"
 }
 
 function unload_mic() {
@@ -43,15 +50,21 @@ function unload_mic() {
   pw-cli destroy ALVR-MIC-Source
 }
 
+function unload_sink() {
+  echo "Unloading audio sink"
+  pw-cli destroy ALVR-AUDIO-Sink
+}
+
 case $ACTION in
 connect)
+  unload_sink
   unload_mic
-  pactl set-sink-mute @DEFAULT_SINK@ 1
   sleep 1
   setup_mic
+  setup_audio
   ;;
 disconnect)
-  pactl set-sink-mute @DEFAULT_SINK@ 0
   unload_mic
+  unload_sink
   ;;
 esac

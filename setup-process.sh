@@ -42,7 +42,7 @@ function phase1_distrobox_podman_install() {
       system_podman_install=0
       echog "Installing rootless podman"
       mkdir podman
-      curl -s "https://raw.githubusercontent.com/89luca89/distrobox/$distrobox_commit/extras/install-podman" | sh -s -- --prefix "$PWD"
+      curl -s https://raw.githubusercontent.com/Meister1593/distrobox/main/extras/install-podman | sh -s -- --prefix "$PWD" --prefix-name "$container_name" # TODO need to simplify this and possibly just use main one with additional stuff
    fi
 
    if ! which distrobox; then

@@ -20,11 +20,11 @@ fi
 AUDIO_SYSTEM="$(head <specs.conf -2 | tail -1)"
 
 echog "Installing packages for base functionality."
-sudo dnf install git vim google-noto-fonts-common xdg-user-dirs xdg-utils fuse SDL2 xorg-x11-server-Xorg --assumeyes --quiet || exit 1
+sudo dnf install git vim google-noto-fonts-common xdg-user-dirs xdg-utils fuse SDL2 xorg-x11-server-Xorg --assumeyes || exit 1
 echog "Installing steam, audio and driver packages."
 if [[ "$GPU" == "amd" ]]; then
-   sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld --assumeyes --quiet || exit 1
-   sudo dnf swap mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --assumeyes --quiet || exit 1
+   sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld --assumeyes || exit 1
+   sudo dnf swap mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --assumeyes || exit 1
 elif [[ "$GPU" == "nvidia" ]]; then
    # TODO do something about packages that steam installs for vulkan but not needed for nvidia
    echog "Using host system driver mounts, not installing anything inside for nvidia drivers."
@@ -33,14 +33,14 @@ else
    exit 1
 fi
 if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
-   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit x264 --assumeyes --quiet || exit 1
+   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit x264 || exit 1
 elif [[ "$AUDIO_SYSTEM" == "pulseaudio" ]]; then
-   sudo dnf install pulseaudio --assumeyes --quiet || exit 1
+   sudo dnf install pulseaudio --assumeyes || exit 1
 else
    echor "Couldn't determine audio system: $AUDIO_SYSTEM, you may have issues with audio!"
 fi
 
-sudo dnf install steam --assumeyes --quiet || exit 1
+sudo dnf install steam --assumeyes || exit 1
 
 export STEP_INDEX=2
 sleep 2
@@ -73,7 +73,8 @@ echog "Installing alvr"
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
 wget -q --show-progress "$ALVR_LINK"
 chmod +x "$ALVR_FILENAME"
-./"$ALVR_FILENAME" &>/dev/null &
+mv $ALVR_FILENAME alvr_dashboard # fixme: alvr_dashboard temporary workaround until alvr fix
+./alvr_dashboard &>/dev/null &
 echog "ALVR and dashboard now launch and when it does that, skip setup (X button on right up corner)."
 echog "After that, launch SteamVR using button on left lower corner and after starting steamvr, you should see one headset showing up in steamvr menu and 'Streamer: Connected' in ALVR dashboard."
 echog "In ALVR Dashboard settings at left side, at the top set 'Game Audio' and 'Game Microphone' to pipewire (if possible)."

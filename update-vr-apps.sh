@@ -10,11 +10,10 @@ init_prefixed_installation "$@"
 source ./setup-dev-env.sh "$prefix"
 
 echog "Reinstalling alvr"
-rm -r $prefix/alvr "${prefix:?}/${ALVR_FILENAME:?}" "${prefix:?}/${ALVR_APK_NAME:?}"
+rm -r $prefix/alvr "${prefix:?}/alvr_dashboard" "${prefix:?}/${ALVR_APK_NAME:?}" # fixme: alvr_dashboard temporary workaround until alvr fix
 wget -q --show-progress -P $prefix/ "$ALVR_LINK"
 chmod +x "$prefix/$ALVR_FILENAME"
-"$prefix"/./"$ALVR_FILENAME" --appimage-extract
-mv squashfs-root $prefix/alvr
+mv $ALVR_FILENAME alvr_dashboard # fixme: alvr_dashboard temporary workaround until alvr fix
 echog "Downloading alvr apk"
 wget -q --show-progress -P $prefix/ "$ALVR_APK_LINK"
 

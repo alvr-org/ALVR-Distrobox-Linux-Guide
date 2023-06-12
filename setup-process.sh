@@ -36,7 +36,7 @@ function phase1_distrobox_podman_install() {
    echor "Phase 1"
    mkdir "$prefix"
    cd "$prefix" || exit
-   distrobox_commit="a19b8175a15b495ba454bf6f7bcccacc96fb09dc" # commit lock to not have sudden changes in behaviour
+   distrobox_commit="9bfac5c3f89c1c782d1be915a37188e513ba85b8" # commit lock to not have sudden changes in behaviour
 
    if ! which podman; then
       system_podman_install=0
@@ -95,10 +95,9 @@ function phase2_distrobox_container_creation() {
 
    echo "$GPU" | tee -a "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
-      distrobox create --pull --image docker.io/library/archlinux:latest \
+      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:38 \
          --name "$container_name" \
-         --home "$prefix/$container_name" \
-         --additional-packages "sudo wget"
+         --home "$prefix/$container_name"
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -110,11 +109,10 @@ function phase2_distrobox_container_creation() {
          echor "Couldn't find CUDA on host, please install it as it's required for NVENC encoder support."
          exit 1
       fi
-      distrobox create --pull --image docker.io/library/archlinux:latest \
+      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:38 \
          --name "$container_name" \
          --nvidia \
-         --home "$prefix/$container_name" \
-         --additional-packages "sudo wget"
+         --home "$prefix/$container_name"
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"

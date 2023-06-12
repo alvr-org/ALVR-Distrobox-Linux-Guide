@@ -36,7 +36,7 @@ function phase1_distrobox_podman_install() {
    echor "Phase 1"
    mkdir "$prefix"
    cd "$prefix" || exit
-   distrobox_commit="209a6999a1df5b0a0f09b89f91ab1a98af4aa102" # commit lock to not have sudden changes in behaviour
+   distrobox_commit="a19b8175a15b495ba454bf6f7bcccacc96fb09dc" # commit lock to not have sudden changes in behaviour
 
    if ! which podman; then
       system_podman_install=0

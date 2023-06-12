@@ -4,6 +4,8 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+STEAMVR_PROCESSES=( vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup ALVR-x86_64.AppImage)
+
 function echog() {
    echo -e "${RED}${STEP_INDEX}${NC} : ${GREEN}$1${NC}"
    sleep 0.5
@@ -14,12 +16,28 @@ function echor() {
 }
 function cleanup_alvr() {
    echog "Cleaning up ALVR"
-   for vrp in vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup alvr_dashboard SlimeVR-amd64* slimevr openvr-spacecalibrator; do
+   for vrp in "${STEAMVR_PROCESSES[@]}"; do
       pkill -f $vrp
    done
    sleep 3
-   for vrp in vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup alvr_dashboard SlimeVR-amd64* slimevr openvr-spacecalibrator; do
+   for vrp in "${STEAMVR_PROCESSES[@]}"; do
       pkill -f -9 $vrp
+   done
+}
+
+function wait_for_initial_steamvr() {
+   for steamvr_process in vrmonitor vrwebhelper vrserver; do
+      until pidof "$steamvr_process" &>/dev/null; do
+         sleep 1
+      done
+   done
+}
+
+function wait_for_full_steamvr() {
+   for steamvr_process in "${STEAMVR_PROCESSES[@]}"; do
+      until pidof "$steamvr_process" &>/dev/null; do
+         sleep 1
+      done
    done
 }
 

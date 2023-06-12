@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "Latest known working version for patching: 1.25.7"
+echo "Latest known working version for patching: 1.25.8"
 
 if [[ -z "$1" ]]; then
-	echo 'Enter path to SteamVR (for example, ~/.local/share/Steam/steamapps/common/SteamVR'
+	echo "Enter path to SteamVR (for example, $HOME/.local/share/Steam/steamapps/common/SteamVR"
 	read STEAMVR_PATH
 else
 	STEAMVR_PATH="$1"

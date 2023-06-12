@@ -3,7 +3,7 @@
 source ./helper-functions.sh
 
 prefix="installation"
-container_name="arch-alvr"
+container_name="fedora-38-alvr"
 system_podman_install=1
 system_distrobox_install=1
 
@@ -142,7 +142,7 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
    distrobox stop --name "$container_name" --yes
-   distrobox enter --name "$container_name" --additional-flags "--env prefix='$prefix' --env container_name='$container_name' --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- ./setup-phase-4.sh
+   distrobox enter --name "$container_name" --additional-flags "--env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-4.sh
    if [ $? -ne 0 ]; then
       echor "Couldn't install distrobox container first time at phase 4, please report it as an issue with attached setup.log from the directory."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc

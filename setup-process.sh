@@ -98,7 +98,7 @@ function phase2_distrobox_container_creation() {
       distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
          --home "$prefix/$container_name" \
-         --additional-packages sudo
+         --additional-packages "sudo wget"
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -114,7 +114,7 @@ function phase2_distrobox_container_creation() {
          --name "$container_name" \
          --nvidia \
          --home "$prefix/$container_name" \
-         --additional-packages sudo
+         --additional-packages "sudo wget"
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"

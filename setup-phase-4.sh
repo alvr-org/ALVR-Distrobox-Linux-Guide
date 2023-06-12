@@ -47,18 +47,18 @@ sleep 2
 echog "Installed base packages and Steam. Opening steam. Please install SteamVR from it."
 steam &>/dev/null &
 echog "Enabling ctrl+c prevention."
-trap 'echog Oops you have pressed ctrl+c which almost stopped this setup, dont worry, i prevented it from doing that in this moment' 2
+trap 'echog "Oops you have pressed ctrl+c which would have stopped this setup, dont worry, i prevented it from doing that"' 2
 echog "Install SteamVR from Steam and press enter here"
 read
 echog "Copy (ctrl + shift + c from terminal) and launch command bellow from your host terminal shell (outside this shell, container) and press enter to continue there. This prevents annoying popup (yes/no with asking for superuser) that prevents steamvr from launching automatically."
 echog "sudo setcap CAP_SYS_NICE+ep '$HOME/.steam/steam/steamapps/common/SteamVR/bin/linux64/vrcompositor-launcher'"
 echog "After you execute that command on host, press enter to continue."
 read
-echog "Disabling ctrl+c prevention, be careful."
-trap 2
 echog "Now launch SteamVR once and close it."
 echog "At this point you can safely add your external library from the host system ('/home/$USER' is same from inside the script container as from outside)"
 echog "When ready for next step, press enter to continue."
+echog "Disabling ctrl+c prevention, be careful."
+trap 2
 read
 
 export STEP_INDEX=3
@@ -86,7 +86,7 @@ cleanup_alvr
 echor "Go to 'Installation' tab at left and press 'Register ALVR driver'"
 echog "After that, press press 'Launch SteamVR' at left corner and hit enter here to continue."
 read
-echog "Downloading ALVR apk, you can install it now from the installation folder into your headset using either ADB or Sidequest on host."
+echog "Downloading ALVR apk, you can install it now from the $(realpath "$PWD")  folder into your headset using either ADB or Sidequest on host."
 wget -q --show-progress "$ALVR_APK_LINK"
 echog "From this point on, alvr will automatically start with SteamVR. But it's still quite broken mechanism so we need to use additional script for auto-restart to work."
 echog "Don't close ALVR."
@@ -114,9 +114,9 @@ sleep 2
 
 # patching steamvr
 echog "To prevent issues with SteamVR spamming with messages into it's own web interface, i created patcher that can prevent this spam. Without this, you will have issues with opening Video Setttings per app, bindings, etc."
-echog "If you're okay with patching (and have compatible SteamVR version), you can type y and press enter to patch SteamVR. Otherwise just press enter to skip"
+echog "If you're okay with patching (and have compatible SteamVR version), just press enter to patch SteamVR. Otherwise type anything else and press enter to skip"
 read -r DO_PATCH
-if [[ "$DO_PATCH" == "y" ]]; then
+if [[ -z "$DO_PATCH" ]]; then
    ../patch_bindings_spam.sh "$HOME/.steam/steam/steamapps/common/SteamVR"
 fi
 
@@ -125,9 +125,6 @@ cd ..
 
 STEP_INDEX=6
 sleep 2
-
-# Added color to pacman for user convenience later
-echo "Color" | sudo tee -a /etc/pacman.conf
 
 # post messages
 echog "From that point on, ALVR should be installed and WlxOverlay should be working. Please refer to https://github.com/galister/WlxOverlay/wiki/Getting-Started to familiarise with controls."

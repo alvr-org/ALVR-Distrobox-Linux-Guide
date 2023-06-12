@@ -36,12 +36,13 @@ function phase1_distrobox_podman_install() {
    echor "Phase 1"
    mkdir "$prefix"
    cd "$prefix" || exit
+   distrobox_commit="209a6999a1df5b0a0f09b89f91ab1a98af4aa102" # commit lock to not have sudden changes in behaviour
 
    if ! which podman; then
       system_podman_install=0
       echog "Installing rootless podman"
       mkdir podman
-      curl -s https://raw.githubusercontent.com/Meister1593/distrobox/main/extras/install-podman | sh -s -- --prefix "$PWD" --prefix-name "$container_name" # TODO temporary linked to own repository until MR passes
+      curl -s "https://raw.githubusercontent.com/89luca89/distrobox/$distrobox_commit/extras/install-podman" | sh -s -- --prefix "$PWD"
    fi
 
    if ! which distrobox; then
@@ -50,6 +51,7 @@ function phase1_distrobox_podman_install() {
       # Installing distrobox from git because it is much newer
       mkdir distrobox
       git clone https://github.com/89luca89/distrobox.git distrobox-git
+      git checkout "$distrobox_commit"
 
       cd distrobox-git || exit
       ./install --prefix ../distrobox
@@ -95,7 +97,8 @@ function phase2_distrobox_container_creation() {
    if [[ "$GPU" == "amd" ]]; then
       distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$prefix/$container_name"
+         --home "$prefix/$container_name" \
+         --additional-packages sudo
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -110,7 +113,8 @@ function phase2_distrobox_container_creation() {
       distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
          --nvidia \
-         --home "$prefix/$container_name"
+         --home "$prefix/$container_name" \
+         --additional-packages sudo
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"

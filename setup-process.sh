@@ -95,7 +95,7 @@ function phase2_distrobox_container_creation() {
 
    echo "$GPU" | tee -a "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
-      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:38 \
+      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
          --name "$container_name" \
          --home "$prefix/$container_name"
       if [ $? -ne 0 ]; then
@@ -109,7 +109,7 @@ function phase2_distrobox_container_creation() {
          echor "Couldn't find CUDA on host, please install it as it's required for NVENC encoder support."
          exit 1
       fi
-      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:38 \
+      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
          --name "$container_name" \
          --nvidia \
          --home "$prefix/$container_name"

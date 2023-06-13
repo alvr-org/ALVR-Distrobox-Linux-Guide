@@ -18,6 +18,7 @@ echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf || exit 1
 echo "LC_ALL=en_US.UTF-8" | sudo tee -a /etc/locale.conf || exit 1
 echo "export LANG=en_US.UTF-8 #alvr-distrobox" | tee -a ~/.bashrc || exit 1
 echo "export LC_ALL=en_US.UTF-8 #alvr-distrobox" | tee -a ~/.bashrc || exit 1
+sudo ln -sf /run/host/etc/localtime /etc/localtime || echor Setting timezone failed, symlink it manually inside container
 sudo dnf install glibc-locale-source \
    glibc-langpack-en \
    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \

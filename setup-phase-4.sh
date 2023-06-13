@@ -25,6 +25,7 @@ echog "Installing steam, audio and driver packages."
 if [[ "$GPU" == "amd" ]]; then
    sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld --assumeyes || exit 1
    sudo dnf swap mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --assumeyes || exit 1
+   sudo dnf install mesa-va-drivers-freeworld.i686 mesa-vdpau-drivers-freeworld.i686 --assumeyes || exit 1
 elif [[ "$GPU" == "nvidia" ]]; then
    # TODO do something about packages that steam installs for vulkan but not needed for nvidia
    echog "Using host system driver mounts, not installing anything inside for nvidia drivers."
@@ -33,7 +34,7 @@ else
    exit 1
 fi
 if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
-   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit x264 || exit 1
+   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit x264 --assumeyes || exit 1
 elif [[ "$AUDIO_SYSTEM" == "pulseaudio" ]]; then
    sudo dnf install pulseaudio --assumeyes || exit 1
 else

@@ -34,7 +34,7 @@ else
    exit 1
 fi
 if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
-   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit x264 --assumeyes || exit 1
+   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit pipewire-utils x264 --assumeyes || exit 1
 elif [[ "$AUDIO_SYSTEM" == "pulseaudio" ]]; then
    sudo dnf install pulseaudio --assumeyes || exit 1
 else
@@ -126,7 +126,7 @@ sleep 2
 # post messages
 echog "From that point on, ALVR should be installed and WlxOverlay should be working. Please refer to https://github.com/galister/WlxOverlay/wiki/Getting-Started to familiarise with controls."
 echor "To start alvr now you need to use start-alvr.sh script from this repository. It will also open Steam for you."
-echog "In case you want to enter into container, write 'source setup-env.sh && distrobox-enter fedora-38-alvr' in console"
+echog "In case you want to enter into container, write 'source setup-env.sh && distrobox-enter fedora-37-alvr' in console"
 echor "Very important: to prevent game from looking like it's laggin, jittering, please turn on legacy reprojection in per-app video settings in steamvr."
 echog "Don't forget to enable Steam Play for all supported titles with latest (non-experimental) proton to make all games visible as playable in Steam."
 echog "Thank you for using the script! Continue with installing alvr apk to headset and with Post-installation notes to configure ALVR and SteamVR"

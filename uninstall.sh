@@ -4,7 +4,7 @@ cd $(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 source ./helper-functions.sh
 
 prefix="installation"
-container_name="fedora-38-alvr"
+container_name="fedora-37-alvr"
 
 init_prefixed_installation "$@"
 source ./setup-dev-env.sh "$prefix"

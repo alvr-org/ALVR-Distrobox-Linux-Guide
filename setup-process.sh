@@ -3,7 +3,7 @@
 source ./helper-functions.sh
 
 prefix="installation"
-container_name="fedora-38-alvr"
+container_name="fedora-37-alvr"
 system_podman_install=1
 system_distrobox_install=1
 

@@ -66,14 +66,14 @@ function unload_sink() {
 
 case $ACTION in
 connect)
-  unload_sink
   unload_mic
-  sleep 0.5
-  setup_audio
+  unload_sink
+  sleep 2
   setup_mic
+  setup_audio
   ;;
 disconnect)
-  unload_sink
   unload_mic
+  unload_sink
   ;;
 esac

@@ -45,7 +45,7 @@ sleep 2
 
 # Ask user for installing steamvr
 echog "Installed base packages and Steam. Opening steam. Please install SteamVR from it."
-steam &>/dev/null &
+steam -vgui &>/dev/null &
 echog "Enabling ctrl+c prevention."
 trap 'echog "Oops you have pressed ctrl+c which would have stopped this setup, dont worry, i prevented it from doing that"' 2
 echog "Install SteamVR from Steam and press enter here"

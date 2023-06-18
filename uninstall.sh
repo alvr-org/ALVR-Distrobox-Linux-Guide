@@ -19,5 +19,6 @@ podman stop "$container_name" 2>/dev/null
 
 "$ROOT_PERMS_COMMAND" rm -rf "$prefix"
 DBX_SUDO_PROGRAM="$ROOT_PERMS_COMMAND" distrobox-rm --rm-home "$container_name" 2>/dev/null
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.5.0/extras/install-podman | sh -s -- --prefix "$PWD"
 
 echog "Uninstall completed."

@@ -68,7 +68,6 @@ case $ACTION in
 connect)
   unload_mic
   unload_sink
-  sleep 2
   setup_mic
   setup_audio
   ;;

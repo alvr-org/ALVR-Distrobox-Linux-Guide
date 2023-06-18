@@ -32,32 +32,23 @@ function detect_audio() {
    fi
 }
 
-function phase1_distrobox_podman_install() {
+function phase1_podman_distrobox_install() {
    echor "Phase 1"
    mkdir "$prefix"
    cd "$prefix" || exit
-   distrobox_commit="9bfac5c3f89c1c782d1be915a37188e513ba85b8" # commit lock to not have sudden changes in behaviour
 
    if ! which podman; then
       system_podman_install=0
       echog "Installing rootless podman"
       mkdir podman
-      curl -s https://raw.githubusercontent.com/Meister1593/distrobox/main/extras/install-podman | sh -s -- --prefix "$PWD" --prefix-name "$container_name" # TODO need to simplify this and possibly just use main one with additional stuff
+      curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.5.0/extras/install-podman | sh
    fi
 
    if ! which distrobox; then
       system_distrobox_install=0
       echog "Installing distrobox"
-      # Installing distrobox from git because it is much newer
       mkdir distrobox
-      git clone https://github.com/89luca89/distrobox.git distrobox-git
-      git checkout "$distrobox_commit"
-
-      cd distrobox-git || exit
-      ./install --prefix ../distrobox
-      cd ..
-
-      rm -rf distrobox-git
+      curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.5.0/install | sh
    fi
    cd ..
 }
@@ -69,31 +60,21 @@ function phase2_distrobox_container_creation() {
 
    source ./setup-dev-env.sh "$prefix"
 
+   # Sanity checks
    if [[ "$system_podman_install" == 0 ]]; then
-      if [[ "$(which podman)" != "$prefix/podman/bin/podman" ]]; then
+      if [[ "$(which podman)" != "$HOME/.local/bin/podman" ]]; then
          echor "Failed to install podman properly"
          exit 1
       fi
    fi
    if [[ "$system_distrobox_install" == 0 ]]; then
-      if [[ "$(which distrobox)" != "$prefix/distrobox/bin/distrobox" ]]; then
+      if [[ "$(which distrobox)" != "$HOME/.local/bin/distrobox" ]]; then
          echor "Failed to install distrobox properly"
          exit 1
       fi
-   else
-      if [[ "$GPU" == "nvidia" ]]; then
-         echog "This script requires latest git version of distrobox, which has ability to integrate with host using --nvidia flag."
-         echog "If you have that version, then write y and press enter to continue."
-         read -r HAS_NVIDIA_FLAG
-         if [[ "$HAS_NVIDIA_FLAG" != "y" ]]; then
-            echor "Aborting installation as per user request."
-            echor "Please visit https://github.com/89luca89/distrobox/blob/main/docs/posts/install_rootless.md for installing rootless podman and make sure to run it from git repository instead from curl."
-            exit 1
-         fi
-      fi
    fi
-
-   echo "$GPU" | tee -a "$prefix/specs.conf"
+   
+   echo "$GPU" | tee "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
       distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
          --name "$container_name" \
@@ -111,8 +92,8 @@ function phase2_distrobox_container_creation() {
       fi
       distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
          --name "$container_name" \
-         --nvidia \
-         --home "$prefix/$container_name"
+         --home "$prefix/$container_name" \
+         --nvidia
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -123,13 +104,11 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
 
-   if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
-      echo "$AUDIO_SYSTEM" | tee -a "$prefix/specs.conf"
-   elif [[ "$AUDIO_SYSTEM" == "pulse" ]]; then
-      echo "$AUDIO_SYSTEM" | tee -a "$prefix/specs.conf"
-      echor "Do note that pulseaudio doesn't work well with ALVR and automatic microphone routing won't work."
+   echo "$AUDIO_SYSTEM" | tee -a "$prefix/specs.conf"
+   if [[ "$AUDIO_SYSTEM" == "pulse" ]]; then
+      echor "Do note that pulseaudio won't work with automatic microphone routing as it requires pipewire."
    else
-      echor "Unsupported audio system ($AUDIO_SYSTEM). Please report this issue."
+      echor "Unsupported audio system ($AUDIO_SYSTEM). Please report this issue to maintainer."
       exit 1
    fi
 
@@ -149,14 +128,18 @@ function phase2_distrobox_container_creation() {
 }
 
 init_prefixed_installation "$@"
+
+# Sanity checks
 if [[ "$prefix" =~ \  ]]; then
    echor "File path to container can't contains spaces as SteamVR will fail to launch if path to it contains spaces."
    echor "Please clone or unpack repository into another directory that doesn't contain spaces."
    exit 1
 fi
-
-# Prevent host steam to be used during install, forcefully kill it
+if [[ -e "$prefix" ]]; then
+   echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
+fi
+# Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam
 
-phase1_distrobox_podman_install
+phase1_podman_distrobox_install
 phase2_distrobox_container_creation

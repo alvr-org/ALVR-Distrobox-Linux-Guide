@@ -37,7 +37,7 @@ if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
    sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit pipewire-utils x264 x264-devel --assumeyes || exit 1 # x264-devel might not be needed, just in case
 elif [[ "$AUDIO_SYSTEM" == "pulseaudio" ]]; then
    sudo dnf install pulseaudio --assumeyes || exit 1
-else2
+else
    echor "Couldn't determine audio system: $AUDIO_SYSTEM, you may have issues with audio!"
 fi
 

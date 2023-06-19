@@ -8,6 +8,22 @@ if [[ -z "$prefix" ]]; then
    exit 1
 fi
 
+# Sanity checks (TODO: sanity check for distrobox/podman installation as well?)
+# Get current gpu (and version in case if it's nvidia from configuration)
+GPU="$(head <specs.conf -1 | tail -2)"
+if [[ "$GPU" == nvidia* ]]; then
+   GPU=$(echo "$GPU" | cut -d' ' -f1)
+fi
+if [[ "$GPU" != "nvidia" ]] || [[ "$GPU" != "amd" ]]; then
+   echor "Something has gone wrong with specs.conf GPU reading, aborting install"
+   exit 1
+fi
+AUDIO_SYSTEM="$(head <specs.conf -2 | tail -1)"
+if [[ "$AUDIO_SYSTEM" != "pipewire" ]] || [[ "$GPU" != "pulse" ]]; then
+   echor "Something has gone wrong with specs.conf AUDIO_SYSTEM reading, aborting install"
+   exit 1
+fi
+
 echor "Phase 3"
 
 cd "$prefix" || echor "Couldn't go into installation folder, aborting."

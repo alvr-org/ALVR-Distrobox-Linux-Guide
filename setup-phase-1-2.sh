@@ -111,6 +111,10 @@ function phase2_distrobox_container_creation() {
       echor "Unsupported audio system ($AUDIO_SYSTEM). Please report this issue to maintainer."
       exit 1
    fi
+   
+   if [[ "$system_podman_install" == 0 ]] || [[ "$system_distrobox_install" == 0 ]]; then
+      echo "podman-$system_podman_install:distrobox-$system_distrobox_install" | tee -a "$prefix/specs.conf"
+   fi
 
    distrobox enter --name "$container_name" --additional-flags "--env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
    if [ $? -ne 0 ]; then

@@ -107,7 +107,7 @@ function phase2_distrobox_container_creation() {
    echo "$AUDIO_SYSTEM" | tee -a "$prefix/specs.conf"
    if [[ "$AUDIO_SYSTEM" == "pulse" ]]; then
       echor "Do note that pulseaudio won't work with automatic microphone routing as it requires pipewire."
-   else
+   elif [[ "$AUDIO_SYSTEM" != "pipewire" ]]; then
       echor "Unsupported audio system ($AUDIO_SYSTEM). Please report this issue to maintainer."
       exit 1
    fi

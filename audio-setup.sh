@@ -66,12 +66,15 @@ function unload_sink() {
 
 case $ACTION in
 connect)
+  sleep 1.5
   unload_mic
   unload_sink
   setup_mic
   setup_audio
   ;;
 disconnect)
+  # Wait for cpal to destroy playbacks and for suspend timeout to be gone before destroying sinks
+  sleep 1.5
   unload_mic
   unload_sink
   ;;

@@ -60,7 +60,7 @@ read
 echog "Disabling ctrl+c prevention, be careful."
 trap 2
 echog "Running steam once to generate startup files."
-steam steam://run/250820 &>/dev/null &
+steam -vgui steam://run/250820 &>/dev/null &
 wait_for_initial_steamvr
 cleanup_alvr
 echog "At this point you can safely add your external library from the host system ('/home/$USER' is same from inside the script container as from outside)"

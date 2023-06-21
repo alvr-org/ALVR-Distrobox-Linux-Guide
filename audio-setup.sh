@@ -45,25 +45,36 @@ function setup_audio() {
 }
 
 function unload_mic() {
-  echo "Unloading microphone sink & source"
-  pw-cli destroy ALVR-MIC-Sink
-  pw-cli destroy ALVR-MIC-Source
+  if pactl list short sinks | grep ALVR-MIC-Sink || pactl list short sources | grep ALVR-MIC-Source; then 
+    echo "Unloading microphone sink & source"
+    pw-link --disconnect ALVR-MIC-Sink ALVR-MIC-Source
+    pw-cli destroy ALVR-MIC-Sink
+    pw-cli destroy ALVR-MIC-Source
+  else 
+    echo Skipping unload, mic sinks are not present
+  fi
 }
 
 function unload_sink() {
-  echo "Unloading audio sink"
-  pw-cli destroy ALVR-AUDIO-Sink
+  if pactl list short sinks | grep ALVR-AUDIO-Sink; then 
+    echo "Unloading audio sink"
+    pw-cli destroy ALVR-AUDIO-Sink
+  else
+    echo Skipping unload, audio sink not present
+  fi
 }
 
 case $ACTION in
 connect)
-  unload_sink
+  sleep 1.5
   unload_mic
-  sleep 1
+  unload_sink
   setup_mic
   setup_audio
   ;;
 disconnect)
+  # Wait for cpal to destroy playbacks and for suspend timeout to be gone before destroying sinks
+  sleep 1.5
   unload_mic
   unload_sink
   ;;

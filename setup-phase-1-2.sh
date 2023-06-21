@@ -78,7 +78,7 @@ function phase2_distrobox_container_creation() {
    if [[ "$GPU" == "amd" ]]; then
       distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
          --name "$container_name" \
-         --home "$prefix/$container_name"
+         --home "$PWD/$prefix/$container_name"
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -92,7 +92,7 @@ function phase2_distrobox_container_creation() {
       fi
       distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
          --name "$container_name" \
-         --home "$prefix/$container_name" \
+         --home "$PWD/$prefix/$container_name" \
          --nvidia
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
@@ -141,6 +141,7 @@ if [[ "$prefix" =~ \  ]]; then
 fi
 if [[ -e "$prefix" ]]; then
    echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
+   exit 1
 fi
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam

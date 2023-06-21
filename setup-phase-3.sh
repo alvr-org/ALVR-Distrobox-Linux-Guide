@@ -23,7 +23,7 @@ if [[ "$GPU" != "nvidia" ]] && [[ "$GPU" != "amd" ]]; then
    exit 1
 fi
 AUDIO_SYSTEM="$(head <specs.conf -2 | tail -1)"
-if [[ "$AUDIO_SYSTEM" != "pipewire" ]] || [[ "$GPU" != "pulse" ]]; then
+if [[ "$AUDIO_SYSTEM" != "pipewire" ]] && [[ "$GPU" != "pulse" ]]; then
    echor "Something has gone wrong with specs.conf AUDIO_SYSTEM reading, aborting install"
    exit 1
 fi

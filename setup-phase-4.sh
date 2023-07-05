@@ -20,12 +20,10 @@ fi
 AUDIO_SYSTEM="$(head <specs.conf -2 | tail -1)"
 
 echog "Installing packages for base functionality."
-sudo dnf install git vim google-noto-fonts-common xdg-user-dirs xdg-utils fuse SDL2 xorg-x11-server-Xorg --assumeyes || exit 1
+sudo pacman -q --noprogressbar -Syu git vim base-devel noto-fonts xdg-user-dirs fuse libx264 sdl2 libva-utils xorg-server --noconfirm || exit 1
 echog "Installing steam, audio and driver packages."
 if [[ "$GPU" == "amd" ]]; then
-   sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld --assumeyes || exit 1
-   sudo dnf swap mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --assumeyes || exit 1
-   sudo dnf install mesa-va-drivers-freeworld.i686 mesa-vdpau-drivers-freeworld.i686 --assumeyes || exit 1
+   sudo pacman -q --noprogressbar -Syu libva-mesa-driver vulkan-radeon lib32-vulkan-radeon lib32-libva-mesa-driver --noconfirm || exit 1
 elif [[ "$GPU" == "nvidia" ]]; then
    # TODO do something about packages that steam installs for vulkan but not needed for nvidia
    echog "Using host system driver mounts, not installing anything inside for nvidia drivers."
@@ -34,14 +32,14 @@ else
    exit 1
 fi
 if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
-   sudo dnf install pipewire pipewire-alsa pipewire-jack-audio-connection-kit pipewire-utils x264 x264-devel --assumeyes || exit 1 # x264-devel might not be needed, just in case
+   sudo pacman -q --noprogressbar -Syu lib32-pipewire pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm || exit 1
 elif [[ "$AUDIO_SYSTEM" == "pulseaudio" ]]; then
-   sudo dnf install pulseaudio --assumeyes || exit 1
+   sudo pacman -q --noprogressbar -Syu pulseaudio pusleaudio-alsa --noconfirm || exit 1
 else
    echor "Couldn't determine audio system: $AUDIO_SYSTEM, you may have issues with audio!"
 fi
 
-sudo dnf install steam --assumeyes || exit 1
+sudo pacman -q --noprogressbar -Syu steam --noconfirm || exit 1
 
 export STEP_INDEX=2
 sleep 2
@@ -126,7 +124,6 @@ sleep 2
 # post messages
 echog "From that point on, ALVR should be installed and WlxOverlay should be working. Please refer to https://github.com/galister/WlxOverlay/wiki/Getting-Started to familiarise with controls."
 echor "To start alvr now you need to use start-alvr.sh script from this repository. It will also open Steam for you."
-echog "In case you want to enter into container, write 'source setup-env.sh && distrobox-enter fedora-37-alvr' in console"
-echor "Very important: to prevent game from looking like it's laggin, jittering, please turn on legacy reprojection in per-app video settings in steamvr."
+echog "In case you want to enter into container, write 'source setup-env.sh && distrobox-enter $container_name' in console"
 echog "Don't forget to enable Steam Play for all supported titles with latest (non-experimental) proton to make all games visible as playable in Steam."
-echog "Thank you for using the script! Continue with installing alvr apk to headset and with Post-installation notes to configure ALVR and SteamVR"
+echog "Thank you for using the script! Continue with installing alvr apk to headset and with very important Post-installation notes to configure ALVR and SteamVR"

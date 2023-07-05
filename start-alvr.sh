@@ -2,7 +2,7 @@
 cd $(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 
 prefix="installation"
-container_name="fedora-37-alvr"
+container_name="arch-alvr"
 
 source ./helper-functions.sh
 source ./links.sh

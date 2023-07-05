@@ -3,7 +3,7 @@
 source ./helper-functions.sh
 
 prefix="installation"
-container_name="fedora-37-alvr"
+container_name="arch-alvr"
 system_podman_install=1
 system_distrobox_install=1
 
@@ -76,7 +76,7 @@ function phase2_distrobox_container_creation() {
    
    echo "$GPU" | tee "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
-      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
+      distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
          --home "$PWD/$prefix/$container_name"
       if [ $? -ne 0 ]; then
@@ -90,7 +90,7 @@ function phase2_distrobox_container_creation() {
          echor "Couldn't find CUDA on host, please install it as it's required for NVENC encoder support."
          exit 1
       fi
-      distrobox create --pull --image registry.fedoraproject.org/fedora-toolbox:37 \
+      distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
          --home "$PWD/$prefix/$container_name" \
          --nvidia

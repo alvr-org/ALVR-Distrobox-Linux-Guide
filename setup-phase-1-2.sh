@@ -47,8 +47,8 @@ function phase1_podman_distrobox_install() {
       echog "Installing rootless podman"
       mkdir podman
       cd distrobox-git || exit
-      ./extras/install-podman --prefix "$PWD/../" # TODO need to simplify this and possibly just use main one with additional stuff
-
+      ./extras/install-podman # TODO need to simplify this and possibly just use main one with additional stuff
+      cd ..
    fi
 
    if ! which distrobox; then
@@ -58,11 +58,11 @@ function phase1_podman_distrobox_install() {
       mkdir distrobox
 
       cd distrobox-git || exit
-      ./install --prefix ../distrobox
+      ./install
       cd ..
 
-      rm -rf distrobox-git
    fi
+   rm -rf distrobox-git
    cd ..
 }
 

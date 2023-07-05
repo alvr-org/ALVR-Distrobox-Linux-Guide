@@ -78,7 +78,7 @@ function phase2_distrobox_container_creation() {
    if [[ "$GPU" == "amd" ]]; then
       distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$PWD/$prefix/$container_name"
+         --home "$prefix/$container_name" # add $PWD before prefix when updating to new distrobox version
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -92,8 +92,8 @@ function phase2_distrobox_container_creation() {
       fi
       distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$PWD/$prefix/$container_name" \
-         --nvidia
+         --home "$prefix/$container_name" \
+         --nvidia # add $PWD to home before prefix when updating to new distrobox version 
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"

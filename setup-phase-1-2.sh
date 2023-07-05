@@ -37,18 +37,31 @@ function phase1_podman_distrobox_install() {
    mkdir "$prefix"
    cd "$prefix" || exit
 
+   distrobox_commit="a19b8175a15b495ba454bf6f7bcccacc96fb09dc" # commit lock to not have sudden changes in behaviour
+
+   git clone https://github.com/89luca89/distrobox.git distrobox-git
+   git checkout "$distrobox_commit"
+
    if ! which podman; then
       system_podman_install=0
       echog "Installing rootless podman"
       mkdir podman
-      curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.5.0/extras/install-podman | sh
+      cd distrobox-git || exit
+      ./extras/install-podman --prefix "$PWD/../" # TODO need to simplify this and possibly just use main one with additional stuff
+
    fi
 
    if ! which distrobox; then
       system_distrobox_install=0
       echog "Installing distrobox"
+      # Installing distrobox from git because it is much newer
       mkdir distrobox
-      curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.5.0/install | sh
+
+      cd distrobox-git || exit
+      ./install --prefix ../distrobox
+      cd ..
+
+      rm -rf distrobox-git
    fi
    cd ..
 }

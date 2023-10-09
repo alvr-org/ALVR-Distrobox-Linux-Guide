@@ -7,6 +7,10 @@ container_name="arch-alvr"
 system_podman_install=1
 system_distrobox_install=1
 
+function log_system() {
+   cat /etc/os-release
+}
+
 function detect_gpu() {
    local gpu
    gpu=$(lspci | grep -i vga | tr '[:upper:]' '[:lower:]')
@@ -162,5 +166,6 @@ fi
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam
 
+log_system
 phase1_podman_distrobox_install
 phase2_distrobox_container_creation

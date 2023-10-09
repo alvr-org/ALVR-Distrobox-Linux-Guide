@@ -35,7 +35,10 @@ function detect_audio() {
 function phase1_podman_distrobox_install() {
    echor "Phase 1"
    mkdir "$prefix"
-   cd "$prefix" || exit
+   cd "$prefix" || { 
+      echor "Couldn't go into installation folder on phase 1, aborting." ; 
+      exit 1 
+   }
 
    distrobox_commit="a19b8175a15b495ba454bf6f7bcccacc96fb09dc" # commit lock to not have sudden changes in behaviour
 

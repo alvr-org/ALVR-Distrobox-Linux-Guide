@@ -10,7 +10,10 @@ fi
 
 echor "Phase 3"
 
-cd "$prefix" || echor "Couldn't go into installation folder, aborting."
+cd "$prefix" || { 
+   echor "Couldn't go into installation folder on phase 3, aborting." ; 
+   exit 1 
+}
 
 # Sanity checks (TODO: sanity check for distrobox/podman installation as well?)
 # Get current gpu (and version in case if it's nvidia from configuration)

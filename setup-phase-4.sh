@@ -10,7 +10,10 @@ fi
 
 echor "Phase 4"
 export STEP_INDEX=1
-cd "$prefix" || echor "Couldn't go into installation folder, aborting."
+cd "$prefix" || { 
+   echor "Couldn't go into installation folder on phase 4, aborting." ; 
+   exit 1 
+}
 
 # Get current gpu (and version in case if it's nvidia from configuration)
 GPU="$(head <specs.conf -1 | tail -2)"
@@ -21,6 +24,13 @@ AUDIO_SYSTEM="$(head <specs.conf -2 | tail -1)"
 
 echog "Installing packages for base functionality."
 sudo pacman -q --noprogressbar -Syu git vim base-devel noto-fonts xdg-user-dirs fuse libx264 sdl2 libva-utils xorg-server --noconfirm || exit 1
+
+echog "Installing paru-bin"
+git clone https://aur.archlinux.org/paru-bin.git
+cd paru-bin || echor "Couldn't go into paru-bin folder, aborting."
+makepkg -si
+cd ..
+
 echog "Installing steam, audio and driver packages."
 if [[ "$GPU" == "amd" ]]; then
    sudo pacman -q --noprogressbar -Syu libva-mesa-driver vulkan-radeon lib32-vulkan-radeon lib32-libva-mesa-driver --noconfirm || exit 1
@@ -39,7 +49,7 @@ else
    echor "Couldn't determine audio system: $AUDIO_SYSTEM, you may have issues with audio!"
 fi
 
-sudo pacman -q --noprogressbar -Syu steam --noconfirm || exit 1
+sudo pacman -q --noprogressbar -Syu steam --noconfirm --assume-installed vulkan-driver || exit 1
 
 export STEP_INDEX=2
 sleep 2
@@ -70,10 +80,8 @@ sleep 2
 
 echog "Installing alvr"
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
-wget -q --show-progress "$ALVR_LINK"
-chmod +x "$ALVR_FILENAME"
-mv $ALVR_FILENAME alvr_dashboard # fixme: alvr_dashboard temporary workaround until alvr fix
-./alvr_dashboard &>/dev/null &
+paru -q --noprogressbar -S alvr --noconfirm --assume-installed vulkan-driver
+alvr_dashboard &>/dev/null &
 echog "ALVR and dashboard now launch and when it does that, skip setup (X button on right up corner)."
 echog "After that, launch SteamVR using button on left lower corner and after starting steamvr, you should see one headset showing up in steamvr menu and 'Streamer: Connected' in ALVR dashboard."
 echog "In ALVR Dashboard settings at left side, at the top set 'Game Audio' and 'Game Microphone' to pipewire (if possible)."
@@ -89,7 +97,7 @@ STEP_INDEX=4
 sleep 2
 
 # installing wlxoverlay
-echog "SteamVR overlay is partially broken on Linux (it also doesn't open games, only allows to interact with already opened games) and for replacement we will use WlxOverlay, which works with both X11 and Wayland and has ability to control whole desktop from inside VR."
+echog "For Desktop usability, we will install WlxOverlay, it works on Wayland and has ability to control whole desktop from inside VR."
 wget -q --show-progress -O "$WLXOVERLAY_FILENAME" "$WLXOVERLAY_LINK"
 chmod +x "$WLXOVERLAY_FILENAME"
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
@@ -106,20 +114,18 @@ read
 STEP_INDEX=5
 sleep 2
 
-# patching steamvr
-echog "To prevent issues with SteamVR spamming with messages into it's own web interface, i created patcher that can prevent this spam. Without this, you will have issues with opening Video Setttings per app, bindings, etc."
-echog "This patch should only be applied to <1.26 steamvr versions, as 1.26+ fixed the issue already."
-echog "Press enter to patch or write anything and press enter to skip."
-read -r DO_PATCH
-if [[ -z "$DO_PATCH" ]]; then
-   ../patch_bindings_spam.sh "$HOME/.steam/steam/steamapps/common/SteamVR"
-fi
+# patching steamvr (without it, steamvr might lag to hell )
+../patch_bindings_spam.sh "$HOME/.steam/steam/steamapps/common/SteamVR"
 
 cleanup_alvr
 cd ..
 
 STEP_INDEX=6
 sleep 2
+
+if [[ "$WAYLAND_DISPLAY" != "" ]]; then
+   echor "If you're on Gnome Wayland or Hyprland, please use WAYLAND_DISPLAY='' %command% commandline parameter for steamvr, otherwise steamvr might not star properly."
+fi
 
 # post messages
 echog "From that point on, ALVR should be installed and WlxOverlay should be working. Please refer to https://github.com/galister/WlxOverlay/wiki/Getting-Started to familiarise with controls."

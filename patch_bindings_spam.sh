@@ -2,9 +2,12 @@
 
 echo "Latest known working version for patching: 1.27.5"
 
-echo 'Enter absolute path to SteamVR (for example, /home/user/.local/share/Steam/steamapps/common/SteamVR)'
-
-read STEAMVR_PATH
+if [[ -z "$1" ]]; then
+	echo 'Enter absolute path to SteamVR (for example, /home/user/.local/share/Steam/steamapps/common/SteamVR)'
+	read STEAMVR_PATH
+else
+	STEAMVR_PATH="$1"
+fi
 
 PATH_TO_PATCHING_FILE="$STEAMVR_PATH/resources/webinterface/dashboard/vrwebui_shared.js"
 if [[ ! -f $PATH_TO_PATCHING_FILE ]]; then
@@ -37,4 +40,5 @@ if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1
 fi
-echo Successfully patched file. Please restart SteamVR if it was running
+
+echo Successfully patched web file.

@@ -28,7 +28,7 @@ sudo pacman -q --noprogressbar -Syu git vim base-devel noto-fonts xdg-user-dirs 
 echog "Installing paru-bin"
 git clone https://aur.archlinux.org/paru-bin.git
 cd paru-bin || echor "Couldn't go into paru-bin folder, aborting."
-makepkg -si
+makepkg --noprogressbar -si --noconfirm
 cd ..
 
 echog "Installing steam, audio and driver packages."
@@ -56,7 +56,16 @@ sleep 2
 
 # Ask user for installing steamvr
 echog "Installed base packages and Steam. Opening steam. Please install SteamVR from it."
-steam steam://install/250820 &>/dev/null &
+if [[ "$WAYLAND_DISPLAY" != "" ]]; then
+   echog "And after installing, please put: WAYLAND_DISPLAY='' %command%"
+   echog "into SteamVR commandline options."
+fi
+
+# Define proper steam desktop file
+mkdir ~/.config
+xdg-mime default steam.desktop x-scheme-handler/steam
+
+xdg-open steam://install/250820 &>/dev/null &
 echog "Enabling ctrl+c prevention."
 trap 'echog "Oops you have pressed ctrl+c which would have stopped this setup, dont worry, i prevented it from doing that"' 2
 echog "Wait for SteamVR installation and press enter here"
@@ -80,14 +89,14 @@ sleep 2
 
 echog "Installing alvr"
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
-paru -q --noprogressbar -S alvr --noconfirm --assume-installed vulkan-driver
-alvr_dashboard &>/dev/null &
+paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver
 echog "ALVR and dashboard now launch and when it does that, skip setup (X button on right up corner)."
 echog "After that, launch SteamVR using button on left lower corner and after starting steamvr, you should see one headset showing up in steamvr menu and 'Streamer: Connected' in ALVR dashboard."
 echog "In ALVR Dashboard settings at left side, at the top set 'Game Audio' and 'Game Microphone' to pipewire (if possible)."
 echog "Find 'On connect script' and 'On disconnect script' as well and put $(realpath "$PWD"/../audio-setup.sh) (confirm each of them with enter on text box) into both of them. This is for automatic microphone that will load/unload based on connection to the headset"
 echog "Tick 'Open setup wizard' too to prevent popup on dashboard startup."
 echor "After you have done with this, press enter here, and don't close alvr dashboard manually."
+alvr_dashboard &>/dev/null &
 read
 echog "Downloading ALVR apk, you can install it now from the $(realpath "$PWD")  folder into your headset using either ADB or Sidequest on host."
 wget -q --show-progress "$ALVR_APK_LINK"
@@ -123,13 +132,10 @@ cd ..
 STEP_INDEX=6
 sleep 2
 
-if [[ "$WAYLAND_DISPLAY" != "" ]]; then
-   echor "If you're on Gnome Wayland or Hyprland, please use WAYLAND_DISPLAY='' %command% commandline parameter for steamvr, otherwise steamvr might not star properly."
-fi
-
 # post messages
 echog "From that point on, ALVR should be installed and WlxOverlay should be working. Please refer to https://github.com/galister/WlxOverlay/wiki/Getting-Started to familiarise with controls."
 echor "To start alvr now you need to use start-alvr.sh script from this repository. It will also open Steam for you."
 echog "In case you want to enter into container, write 'source setup-env.sh && distrobox-enter $container_name' in console"
 echog "Don't forget to enable Steam Play for all supported titles with latest (non-experimental) proton to make all games visible as playable in Steam."
+echog "To start WlxOverlay for using desktop in vr , open start-overlay.sh script."
 echog "Thank you for using the script! Continue with installing alvr apk to headset and with very important Post-installation notes to configure ALVR and SteamVR"

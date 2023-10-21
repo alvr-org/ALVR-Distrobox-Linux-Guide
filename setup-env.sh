@@ -19,4 +19,4 @@ fi
 
 init_prefixed_installation "$@"
 
-export PATH="$HOME/.local/bin:$HOME/.local/podman/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"

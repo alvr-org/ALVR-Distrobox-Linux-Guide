@@ -44,32 +44,25 @@ function phase1_podman_distrobox_install() {
       exit 1 
    }
 
-   distrobox_commit="a19b8175a15b495ba454bf6f7bcccacc96fb09dc" # commit lock to not have sudden changes in behaviour
-
-   git clone https://github.com/89luca89/distrobox.git distrobox-git
-   git checkout "$distrobox_commit"
-
    if ! which podman; then
       system_podman_install=0
-      echog "Installing rootless podman"
-      mkdir podman
-      cd distrobox-git || exit
-      ./extras/install-podman # TODO need to simplify this and possibly just use main one with additional stuff
-      cd ..
+      echog "Installing static podman"
+      wget -O podman https://github.com/89luca89/podman-launcher/releases/download/v0.0.3/podman-launcher-amd64 
+      chmod +x podman
+      mv podman "$HOME/.local/bin"
    fi
 
    if ! which distrobox; then
+      echog "Installing distrobox"   
       system_distrobox_install=0
-      echog "Installing distrobox"
-      # Installing distrobox from git because it is much newer
-      mkdir distrobox
+      distrobox_commit="1.5.0.2" # commit lock to not have sudden changes in behaviour
 
-      cd distrobox-git || exit
+      git clone https://github.com/89luca89/distrobox.git distrobox
+      cd distrobox || exit
+      git checkout "$distrobox_commit"
       ./install
       cd ..
-
    fi
-   rm -rf distrobox-git
    cd ..
 }
 
@@ -96,9 +89,9 @@ function phase2_distrobox_container_creation() {
    
    echo "$GPU" | tee "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
-      distrobox create --pull --image docker.io/library/archlinux:latest \
+      distrobox-create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$prefix/$container_name" # add $PWD before prefix when updating to new distrobox version
+         --home "$PWD/$prefix/$container_name"
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -107,13 +100,13 @@ function phase2_distrobox_container_creation() {
    elif [[ "$GPU" == nvidia* ]]; then
       CUDA_LIBS="$(find /usr/lib* -iname "libcuda*.so*")"
       if [[ -z "$CUDA_LIBS" ]]; then
-         echor "Couldn't find CUDA on host, please install it as it's required for NVENC encoder support."
+         echor "Couldn't find CUDA on host, please install it, reboot and try again, as it's required for NVENC encoder support."
          exit 1
       fi
-      distrobox create --pull --image docker.io/library/archlinux:latest \
+      distrobox-create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$prefix/$container_name" \
-         --nvidia # add $PWD to home before prefix when updating to new distrobox version 
+         --home "$PWD/$prefix/$container_name" \
+         --nvidia
       if [ $? -ne 0 ]; then
          echor "Couldn't create distrobox container, please report it to maintainer."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
@@ -136,14 +129,14 @@ function phase2_distrobox_container_creation() {
       echo "podman-$system_podman_install:distrobox-$system_distrobox_install" | tee -a "$prefix/specs.conf"
    fi
 
-   distrobox enter --name "$container_name" --additional-flags "--env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
+   distrobox-enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
    if [ $? -ne 0 ]; then
       echor "Couldn't install distrobox container first time at phase 3, please report it as an issue with attached setup.log from the directory."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc
       exit 1
    fi
-   distrobox stop --name "$container_name" --yes
-   distrobox enter --name "$container_name" --additional-flags "--env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-4.sh
+   distrobox-stop --name "$container_name" --yes
+   distrobox-enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-4.sh
    if [ $? -ne 0 ]; then
       echor "Couldn't install distrobox container first time at phase 4, please report it as an issue with attached setup.log from the directory."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc

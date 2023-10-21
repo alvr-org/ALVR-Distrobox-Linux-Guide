@@ -16,4 +16,4 @@ if which podman && which distrobox; then
     return
 fi
 
-export PATH="$HOME/.local/bin:$HOME/.local/podman/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"

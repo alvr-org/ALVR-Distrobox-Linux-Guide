@@ -31,12 +31,16 @@ if [[ "$AUDIO_SYSTEM" != "pipewire" ]] && [[ "$GPU" != "pulse" ]]; then
    exit 1
 fi
 
+# Renaming xdg-open from container because it will run host applications (like steam) instead of internal ones
+sudo mv /usr/local/bin/xdg-open /usr/local/bin/xdg-open2
+
 # Setting up arch
 echog "Setting up repositories"
 echo "[multilib]" | sudo tee -a /etc/pacman.conf
 echo "Include = /etc/pacman.d/mirrorlist" | sudo tee -a /etc/pacman.conf
 echog "Setting up locales"
 echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
+sudo pacman-key --init
 sudo pacman -q --noprogressbar -Syu glibc lib32-glibc xdg-utils --noconfirm
 echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf
 echo "LC_ALL=en_US.UTF-8" | sudo tee /etc/locale.conf

@@ -56,7 +56,7 @@ function phase1_podman_distrobox_install() {
    if ! which distrobox; then
       echog "Installing distrobox"   
       system_distrobox_install=0
-      distrobox_commit="1.5.0.2" # commit lock to not have sudden changes in behaviour
+      distrobox_commit="1.6.0.1" # commit lock to not have sudden changes in behaviour
 
       git clone https://github.com/89luca89/distrobox.git distrobox
       cd distrobox || exit

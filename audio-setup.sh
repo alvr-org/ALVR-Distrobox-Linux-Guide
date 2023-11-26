@@ -36,9 +36,9 @@ function get_sink_id_by_name() {
 function setup_mic() {
   echo "Creating microphone sink & source and linking alvr playback to it"
   # This sink is required so that it persistently auto-connects to alvr playback later
-  pactl load-module module-null-sink sink_name=ALVR-MIC-Sink media.class=Audio/Sink
+  pactl load-module module-null-sink sink_name=ALVR-MIC-Sink media.class=Audio/Sink | tee -a /tmp/alvr-audio
   # This source is required so that any app can use it as microphone
-  pactl load-module module-null-sink sink_name=ALVR-MIC-Source media.class=Audio/Source/Virtual
+  pactl load-module module-null-sink sink_name=ALVR-MIC-Source media.class=Audio/Source/Virtual | tee -a /tmp/alvr-audio
   # We link them together
   pw-link ALVR-MIC-Sink ALVR-MIC-Source
   # And we assign playback of pipewire alsa playback to created alvr sink
@@ -47,12 +47,15 @@ function setup_mic() {
 
 function unload_modules() {
   echo "Unloading audio, microphone sink & source"
-  pactl unload-module module-null-sink
+  while read -r line; do
+    pactl unload-module "$line"
+  done <"/tmp/alvr-audio"
+  >/tmp/alvr-audio
 }
 
 function setup_audio() {
   echo "Setting up audio"
-  pactl load-module module-null-sink sink_name=ALVR-AUDIO-Sink media.class=Audio/Sink
+  pactl load-module module-null-sink sink_name=ALVR-AUDIO-Sink media.class=Audio/Sink | tee -a /tmp/alvr-audio
   pactl set-default-sink ALVR-AUDIO-Sink
   pactl move-source-output "$(get_playback_source_output_id alsa_capture.vrserver)" "$(get_sink_id_by_name ALVR-AUDIO-Sink)"
 }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+USE_HEADSET_MIC=1
+
 function get_playback_sink_input_id() {
   get_playback_id sink-inputs 'Sink Input' "$1"
 }
@@ -43,6 +45,9 @@ function setup_mic() {
   pw-link ALVR-MIC-Sink ALVR-MIC-Source
   # And we assign playback of pipewire alsa playback to created alvr sink
   pactl move-sink-input "$(get_playback_sink_input_id alsa_playback.vrserver)" "$(get_sink_id_by_name ALVR-MIC-Sink)"
+  if [[ $USE_HEADSET_MIC == 1 ]]; then
+    pactl set-default-source ALVR-MIC-Source
+  fi
 }
 
 function unload_modules() {

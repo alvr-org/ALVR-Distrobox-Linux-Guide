@@ -23,11 +23,12 @@ DBX_SUDO_PROGRAM="$ROOT_PERMS_COMMAND" distrobox-rm --rm-home "$container_name" 
 
 system_podman_install=$(echo "$distrobox_podman_install_string" | cut -d':' -f1 | cut -d'-' -f2)
 if [[ "$system_podman_install" == "0" ]]; then
+   podman system reset
    rm "$HOME/.local/bin/podman"
 fi 
 system_distrobox_install=$(echo "$distrobox_podman_install_string" | cut -d':' -f2 | cut -d'-' -f2)
 if [[ "$system_distrobox_install" == "0" ]]; then
-   curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.5.0.2/uninstall | sh
+   curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.6.0.1/uninstall | sh
 fi
 
 echog "Uninstall completed."

@@ -25,7 +25,7 @@ system_podman_install=$(echo "$distrobox_podman_install_string" | cut -d':' -f1 
 if [[ "$system_podman_install" == "0" ]]; then
    podman system reset
    rm "$HOME/.local/bin/podman"
-fi 
+fi
 system_distrobox_install=$(echo "$distrobox_podman_install_string" | cut -d':' -f2 | cut -d'-' -f2)
 if [[ "$system_distrobox_install" == "0" ]]; then
    curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.6.0.1/uninstall | sh

@@ -10,9 +10,9 @@ fi
 
 echor "Phase 4"
 export STEP_INDEX=1
-cd "$prefix" || { 
-   echor "Couldn't go into installation folder on phase 4, aborting." ; 
-   exit 1 
+cd "$prefix" || {
+   echor "Couldn't go into installation folder on phase 4, aborting."
+   exit 1
 }
 
 # Get current gpu (and version in case if it's nvidia from configuration)

@@ -39,22 +39,22 @@ function detect_audio() {
 function phase1_podman_distrobox_install() {
    echor "Phase 1"
    mkdir "$prefix"
-   cd "$prefix" || { 
-      echor "Couldn't go into installation folder on phase 1, aborting." ; 
-      exit 1 
+   cd "$prefix" || {
+      echor "Couldn't go into installation folder on phase 1, aborting."
+      exit 1
    }
 
    if ! which podman; then
       system_podman_install=0
       echog "Installing static podman"
-      wget -O podman https://github.com/89luca89/podman-launcher/releases/download/v0.0.3/podman-launcher-amd64 
+      wget -O podman https://github.com/89luca89/podman-launcher/releases/download/v0.0.3/podman-launcher-amd64
       chmod +x podman
       mkdir -p "$HOME/.local/bin"
       mv podman "$HOME/.local/bin"
    fi
 
    if ! which distrobox; then
-      echog "Installing distrobox"   
+      echog "Installing distrobox"
       system_distrobox_install=0
       distrobox_commit="1.6.0.1" # commit lock to not have sudden changes in behaviour
 
@@ -88,7 +88,7 @@ function phase2_distrobox_container_creation() {
          exit 1
       fi
    fi
-   
+
    echo "$GPU" | tee "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
       distrobox-create --pull --image docker.io/library/archlinux:latest \
@@ -126,7 +126,7 @@ function phase2_distrobox_container_creation() {
       echor "Unsupported audio system ($AUDIO_SYSTEM). Please report this issue to maintainer."
       exit 1
    fi
-   
+
    if [[ "$system_podman_install" == 0 ]] || [[ "$system_distrobox_install" == 0 ]]; then
       echo "podman-$system_podman_install:distrobox-$system_distrobox_install" | tee -a "$prefix/specs.conf"
    fi

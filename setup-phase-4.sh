@@ -89,7 +89,7 @@ sleep 2
 
 echog "Installing alvr"
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
-paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
 echog "ALVR and dashboard now launch and when it does that, skip setup (X button on right up corner)."
 echog "After that, launch SteamVR using button on left lower corner and after starting steamvr, you should see one headset showing up in steamvr menu and 'Streamer: Connected' in ALVR dashboard."
 echog "In ALVR Dashboard settings at left side, at the top set 'Game Audio' and 'Game Microphone' to pipewire (if possible)."

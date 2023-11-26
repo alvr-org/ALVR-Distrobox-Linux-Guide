@@ -49,6 +49,7 @@ function phase1_podman_distrobox_install() {
       echog "Installing static podman"
       wget -O podman https://github.com/89luca89/podman-launcher/releases/download/v0.0.3/podman-launcher-amd64 
       chmod +x podman
+      mkdir -p "$HOME/.local/bin"
       mv podman "$HOME/.local/bin"
    fi
 
@@ -60,6 +61,7 @@ function phase1_podman_distrobox_install() {
       git clone https://github.com/89luca89/distrobox.git distrobox
       cd distrobox || exit
       git checkout "$distrobox_commit"
+      mkdir -p "$HOME/.local/bin"
       ./install
       cd ..
    fi

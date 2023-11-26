@@ -49,7 +49,7 @@ else
    echor "Couldn't determine audio system: $AUDIO_SYSTEM, you may have issues with audio!"
 fi
 
-sudo pacman -q --noprogressbar -Syu steam --noconfirm --assume-installed vulkan-driver || exit 1
+sudo pacman -q --noprogressbar -Syu steam --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
 
 export STEP_INDEX=2
 sleep 2

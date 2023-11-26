@@ -42,7 +42,8 @@ function setup_mic() {
   # This source is required so that any app can use it as microphone
   pactl load-module module-null-sink sink_name=ALVR-MIC-Source media.class=Audio/Source/Virtual | tee -a /tmp/alvr-audio
   # We link them together
-  pw-link ALVR-MIC-Sink ALVR-MIC-Source
+  pw-link ALVR-MIC-Sink:monitor_FL ALVR-MIC-Source:input_FL
+  pw-link ALVR-MIC-Sink:monitor_FR ALVR-MIC-Source:input_FR
   # And we assign playback of pipewire alsa playback to created alvr sink
   pactl move-sink-input "$(get_playback_sink_input_id alsa_playback.vrserver)" "$(get_sink_id_by_name ALVR-MIC-Sink)"
   if [[ $USE_HEADSET_MIC == 1 ]]; then

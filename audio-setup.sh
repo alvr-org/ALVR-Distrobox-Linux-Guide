@@ -69,8 +69,8 @@ function setup_audio() {
 case $ACTION in
 connect)
   unload_modules
-  setup_mic
   setup_audio
+  setup_mic
   ;;
 disconnect)
   unload_modules

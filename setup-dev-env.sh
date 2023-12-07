@@ -13,8 +13,8 @@ if [[ -z "$WAYLAND_DISPLAY" ]]; then
     fi
 fi
 
-if which podman && which distrobox; then
-    echog "Using system podman and distrobox"
+if which lilipod && which distrobox; then
+    echog "Using system lilipod and distrobox"
     return
 fi
 

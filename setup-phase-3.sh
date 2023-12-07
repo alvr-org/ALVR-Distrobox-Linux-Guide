@@ -15,7 +15,7 @@ cd "$prefix" || {
    exit 1
 }
 
-# Sanity checks (TODO: sanity check for distrobox/podman installation as well?)
+# Sanity checks (TODO: sanity check for distrobox/lilipod installation as well?)
 # Get current gpu (and version in case if it's nvidia from configuration)
 GPU="$(head <specs.conf -1 | tail -2)"
 if [[ "$GPU" == nvidia* ]]; then

@@ -14,8 +14,8 @@ if [[ -z "$WAYLAND_DISPLAY" ]]; then
     fi
 fi
 
-if [[ -n "$(which podman)" ]] && [[ -n "$(which distrobox)" ]]; then
-    echog "Using system podman and distrobox"
+if [[ -n "$(which lilipod)" ]] && [[ -n "$(which distrobox)" ]]; then
+    echog "Using system lilipod and distrobox"
     return
 fi
 

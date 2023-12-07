@@ -8,6 +8,7 @@ if [ "$EUID" -eq 0 ]; then
    echo "Please don't run this script as root (no sudo)."
    exit 1
 fi
+export DBX_CONTAINER_MANAGER=lilipod
 
 source ./helper-functions.sh
 source ./links.sh

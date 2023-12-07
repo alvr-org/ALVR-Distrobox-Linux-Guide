@@ -4,7 +4,7 @@ source ./helper-functions.sh
 
 prefix="installation"
 container_name="arch-alvr"
-system_podman_install=1
+system_lilipod_install=1
 system_distrobox_install=1
 
 function log_system() {
@@ -36,7 +36,7 @@ function detect_audio() {
    fi
 }
 
-function phase1_podman_distrobox_install() {
+function phase1_lilipod_distrobox_install() {
    echor "Phase 1"
    mkdir "$prefix"
    cd "$prefix" || {
@@ -44,13 +44,13 @@ function phase1_podman_distrobox_install() {
       exit 1
    }
 
-   if ! which podman; then
-      system_podman_install=0
-      echog "Installing static podman"
-      wget -O podman https://github.com/89luca89/podman-launcher/releases/download/v0.0.3/podman-launcher-amd64
-      chmod +x podman
+   if ! which lilipod; then
+      system_lilipod_install=0
+      echog "Installing lilipod"
+      wget -O lilipod https://github.com/89luca89/lilipod/releases/download/v0.0.1/lilipod-linux-amd64
+      chmod +x lilipod
       mkdir -p "$HOME/.local/bin"
-      mv podman "$HOME/.local/bin"
+      mv lilipod "$HOME/.local/bin"
    fi
 
    if ! which distrobox; then
@@ -76,9 +76,9 @@ function phase2_distrobox_container_creation() {
    source ./setup-dev-env.sh "$prefix"
 
    # Sanity checks
-   if [[ "$system_podman_install" == 0 ]]; then
-      if [[ "$(which podman)" != "$HOME/.local/bin/podman" ]]; then
-         echor "Failed to install podman properly"
+   if [[ "$system_lilipod_install" == 0 ]]; then
+      if [[ "$(which lilipod)" != "$HOME/.local/bin/lilipod" ]]; then
+         echor "Failed to install lilipod properly"
          exit 1
       fi
    fi
@@ -127,8 +127,8 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
 
-   if [[ "$system_podman_install" == 0 ]] || [[ "$system_distrobox_install" == 0 ]]; then
-      echo "podman-$system_podman_install:distrobox-$system_distrobox_install" | tee -a "$prefix/specs.conf"
+   if [[ "$system_lilipod_install" == 0 ]] || [[ "$system_distrobox_install" == 0 ]]; then
+      echo "lilipod-$system_lilipod_install:distrobox-$system_distrobox_install" | tee -a "$prefix/specs.conf"
    fi
 
    distrobox-enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
@@ -166,5 +166,5 @@ fi
 pkill -f steam
 
 log_system
-phase1_podman_distrobox_install
+phase1_lilipod_distrobox_install
 phase2_distrobox_container_creation

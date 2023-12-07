@@ -1,6 +1,8 @@
 #!/bin/bash
 cd $(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 
+export DBX_CONTAINER_MANAGER=lilipod
+
 source ./helper-functions.sh
 
 # Required on xorg setups

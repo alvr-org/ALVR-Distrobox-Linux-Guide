@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DBX_CONTAINER_MANAGER=lilipod
+
 source ./helper-functions.sh
 
 # Required on xorg setups

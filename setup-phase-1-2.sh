@@ -149,13 +149,17 @@ function phase2_distrobox_container_creation() {
 init_prefixed_installation "$@"
 
 # Sanity checks
-if [[ "$prefix" =~ \  ]]; then
-   echor "File path to container can't contains spaces as SteamVR will fail to launch if path to it contains spaces."
-   echor "Please clone or unpack repository into another directory that doesn't contain spaces."
+if [ "$EUID" -eq 0 ]; then
+   echo "Please don't run this script as root (no sudo)."
    exit 1
 fi
 if [[ -e "$prefix" ]]; then
    echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
+   exit 1
+fi
+if [[ "$prefix" =~ \  ]]; then
+   echor "File path to container can't contains spaces as SteamVR will fail to launch if path to it contains spaces."
+   echor "Please clone or unpack repository into another directory that doesn't contain spaces."
    exit 1
 fi
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)

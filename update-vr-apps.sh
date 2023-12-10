@@ -4,6 +4,11 @@ cd $(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 prefix="installation"
 container_name="arch-alvr"
 
+if [ "$EUID" -eq 0 ]; then
+   echo "Please don't run this script as root (no sudo)."
+   exit 1
+fi
+
 source ./links.sh
 source ./helper-functions.sh
 

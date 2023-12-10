@@ -6,17 +6,22 @@ source ./helper-functions.sh
 prefix="installation"
 container_name="arch-alvr"
 
+if [ "$EUID" -eq 0 ]; then
+   echo "Please don't run this script as root (no sudo)."
+   exit 1
+fi
+
 init_prefixed_installation "$@"
 source ./setup-dev-env.sh "$prefix"
 
-echog "If you're using sudo, press enter, otherwise please write it as-is now and then press enter to confirm deletion of $prefix folder with $container_name container."
-read -r ROOT_PERMS_COMMAND
-if [[ -z "$ROOT_PERMS_COMMAND" ]]; then
-   ROOT_PERMS_COMMAND="sudo"
+ROOT_PERMS_COMMAND="sudo"
+if ! command -v sudo &>/dev/null; then
+   echog "Could not detect sudo, please write it as-is now and then press enter to confirm deletion of $prefix folder with $container_name container."
+   read -r ROOT_PERMS_COMMAND
 fi
-
 podman stop "$container_name" 2>/dev/null
 
+echo "Script now will ask for sudo because it needs to remove container files that can't be remove normally"
 distrobox_podman_install_string=$(head <"$prefix/specs.conf" -3 | tail -1)
 "$ROOT_PERMS_COMMAND" rm -rf "$prefix"
 DBX_SUDO_PROGRAM="$ROOT_PERMS_COMMAND" distrobox-rm --rm-home "$container_name" 2>/dev/null

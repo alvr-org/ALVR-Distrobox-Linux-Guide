@@ -20,25 +20,33 @@ echo 'In case of failed patching, please re-validate SteamVR files to make sure 
 echo Deleting SteamVR html cache
 rm -r ~/.cache/SteamVR
 
-CHANGED_OUT=$(sed -i 's/m=n(1380),g=n(9809);/m=n(1380),g=n(9809),refresh_counter=0,refresh_counter_max=25;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
+CHANGED_OUT=$(sed -i 's/m=n(1380),g=n(9809);/m=n(1380),g=n(9809),refresh_counter=0,refresh_counter_max=75;/g w /dev/stdout' $PATH_TO_PATCHING_FILE )
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1
+else 
+	echo "patched 1"
 fi
 CHANGED_OUT=$(sed -i 's/case"action_bindings_reloaded":this.OnActionBindingsReloaded(n);break;/case"action_bindings_reloaded":if(refresh_counter%refresh_counter_max==0){this.OnActionBindingsReloaded(n);}refresh_counter++;break;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1
+else
+	echo "patched 2"
 fi
-CHANGED_OUT=$(sed -i 's/l=n(3568),c=n(1569);/l=n(3568),c=n(1569),refresh_counter_v2=0,refresh_counter_max_v2=25;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
+CHANGED_OUT=$(sed -i 's/l=n(3568),c=n(1073);/l=n(3568),c=n(1073),refresh_counter_v2=0,refresh_counter_max_v2=75;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1
+else
+	echo "patched 3"
 fi
 CHANGED_OUT=$(sed -i 's/OnActionBindingsReloaded(){this.GetInputState()}/OnActionBindingsReloaded(){if(refresh_counter_v2%refresh_counter_max_v2==0){this.GetInputState();}refresh_counter_v2++;}/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1
+else
+	echo "patched 4"
 fi
 
 echo Successfully patched web file.

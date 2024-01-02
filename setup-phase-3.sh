@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./links.sh
+source ./env.sh
 source ./helper-functions.sh
 
 if [[ -z "$prefix" ]]; then
@@ -41,11 +41,11 @@ echo "Include = /etc/pacman.d/mirrorlist" | sudo tee -a /etc/pacman.conf
 echog "Setting up locales"
 echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
 sudo pacman-key --init
-sudo pacman -q --noprogressbar -Syu glibc lib32-glibc xdg-utils qt5-tools --noconfirm
 echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf
 echo "LC_ALL=en_US.UTF-8" | sudo tee /etc/locale.conf
 echo "export LANG=en_US.UTF-8 #alvr-distrobox" | tee -a ~/.bashrc
 echo "export LC_ALL=en_US.UTF-8 #alvr-distrobox" | tee -a ~/.bashrc
+sudo pacman -q --noprogressbar -Syu glibc lib32-glibc xdg-utils qt5-tools qt5-multimedia at-spi2-core lib32-at-spi2-core --noconfirm
 
 cd ..
 

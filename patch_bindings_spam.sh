@@ -24,7 +24,7 @@ CHANGED_OUT=$(sed -i 's/m=n(1380),g=n(9809);/m=n(1380),g=n(9809),refresh_counter
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1
-else 
+else
 	echo "patched 1"
 fi
 CHANGED_OUT=$(sed -i 's/case"action_bindings_reloaded":this.OnActionBindingsReloaded(n);break;/case"action_bindings_reloaded":if(refresh_counter%refresh_counter_max==0){this.OnActionBindingsReloaded(n);}refresh_counter++;break;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)

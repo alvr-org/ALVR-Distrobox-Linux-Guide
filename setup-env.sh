@@ -1,9 +1,9 @@
 #!/bin/bash
-cd $(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 
-export DBX_CONTAINER_MANAGER=lilipod
-
+source ./env.sh
 source ./helper-functions.sh
+
+prefix="$(realpath "$prefix")"
 
 # Required on xorg setups
 if [[ -z "$WAYLAND_DISPLAY" ]]; then
@@ -14,11 +14,5 @@ if [[ -z "$WAYLAND_DISPLAY" ]]; then
     fi
 fi
 
-if [[ -n "$(which lilipod)" ]] && [[ -n "$(which distrobox)" ]]; then
-    echog "Using system lilipod and distrobox"
-    return
-fi
-
-init_prefixed_installation "$@"
-
-export PATH="$HOME/.local/bin:$PATH"
+export prefix
+export PATH="$prefix/bin/:$PATH"

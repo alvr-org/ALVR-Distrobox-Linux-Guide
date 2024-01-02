@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./links.sh
+source ./env.sh
 source ./helper-functions.sh
 
 if [[ -z "$prefix" ]]; then
@@ -56,31 +56,41 @@ sleep 2
 
 # Ask user for installing steamvr
 echog "Installed base packages and Steam. Opening steam. Please install SteamVR from it."
-if [[ "$WAYLAND_DISPLAY" != "" ]]; then
-   echog "And after installing, please put: WAYLAND_DISPLAY='' %command%"
-   echog "into SteamVR commandline options."
-fi
 
 # Define proper steam desktop file
 mkdir ~/.config
 xdg-mime default steam.desktop x-scheme-handler/steam
 
-xdg-open steam://install/250820 &>/dev/null &
-echog "Enabling ctrl+c prevention."
-trap 'echog "Oops you have pressed ctrl+c which would have stopped this setup, dont worry, i prevented it from doing that"' 2
-echog "Wait for SteamVR installation and press enter here"
-read
-echog "Copy (ctrl + shift + c from terminal) and launch command bellow from your host terminal shell (outside this shell, container) and press enter to continue there. This prevents annoying popup (yes/no with asking for superuser) that prevents steamvr from launching automatically."
-echog "sudo setcap CAP_SYS_NICE+ep '$HOME/.steam/steam/steamapps/common/SteamVR/bin/linux64/vrcompositor-launcher'"
-echog "After you execute that command on host, press enter to continue."
-read
-echog "Disabling ctrl+c prevention, be careful."
-trap 2
-echog "Running steam once to generate startup files."
-steam -vgui steam://run/250820 &>/dev/null &
+steam steam://install/250820 &>/dev/null &
+echog "Installation continues when steamvr will be installed"
+echor "Huge note: currently steamvr under distrobox won't allow opening settings because it's vrwebhelper doesn't load, i don't know fix yet for that so, use wlxoverlay to open games for now"
+echor "This also means some post-installation notes may not be applied for now"
+while [ ! -f "$HOME/.steam/steam/steamapps/common/SteamVR/bin/vrwebhelper/linux64/vrwebhelper.sh" ]; do
+   sleep 5
+done
+sleep 3
+
+if [[ "$WAYLAND_DISPLAY" != "" ]]; then
+   echog "Patching steam commandline options to allow proper steamvr launching on wayland."
+   sed -iv 's|"LaunchOptions"[[:space:]]*""|"LaunchOptions"         "WAYLAND_DISPLAY='' %command%"|g' "$HOME/.steam/steam/userdata/80832101/config/localconfig.vdf" ||
+      echor "Couldn't patch wayland display variable om steamvr commandline options, you might want to set it manually: WAYLAND_DISPLAY='' %command%"
+fi
+
+echog "Closing steam to apply commandline options"
+pkill steam
+sleep 3
+pkill -9 steam
+
+echog "Next prompt for superuser access prevents annoying popup from steamvr (yes/no with asking for superuser) that prevents steamvr from launching automatically."
+distrobox-host-exec pkexec setcap CAP_SYS_NICE+ep "$HOME/.steam/steam/steamapps/common/SteamVR/bin/linux64/vrcompositor-launcher" ||
+   echor "Couldn't setcap vrcompositor, steamvr will ask for permissions every single launch."
+
+echog "Running steamvr once to generate startup files."
+steam steam://run/250820 &>/dev/null &
 wait_for_initial_steamvr
 cleanup_alvr
-echog "At this point you can safely add your external library from the host system ('/home/$USER' is same from inside the script container as from outside)"
+
+echog "At this point you can safely add your existing library from your system if you had one."
 echog "When ready for next step, press enter to continue."
 read
 
@@ -89,30 +99,29 @@ sleep 2
 
 echog "Installing alvr"
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
+# temporarily changed to nightly alvr until after 20.5.0
 paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
-echog "ALVR and dashboard now launch and when it does that, skip setup (X button on right up corner)."
-echog "After that, launch SteamVR using button on left lower corner and after starting steamvr, you should see one headset showing up in steamvr menu and 'Streamer: Connected' in ALVR dashboard."
-echog "In ALVR Dashboard settings at left side, at the top set 'Game Audio' and 'Game Microphone' to pipewire (if possible)."
-echog "Find 'On connect script' and 'On disconnect script' as well and put $(realpath "$PWD"/../audio-setup.sh) (confirm each of them with enter on text box) into both of them. This is for automatic microphone that will load/unload based on connection to the headset"
-echog "Tick 'Open setup wizard' too to prevent popup on dashboard startup."
-echor "After you have done with this, press enter here, and don't close alvr dashboard manually."
 alvr_dashboard &>/dev/null &
+echog "ALVR and dashboard now launch. Proceed with setup wizard in Installation tab -> Run setup wizard and after finishing it, continue there."
+echog "Setting firewall rules will fail and it's normal, not yet available to do when using this installation method."
+echog "If after installation you can't seem to connect headset, then please open 9944 and 9943 ports using your system firewall."
+echog "Launch SteamVR using button on left lower corner and after starting steamvr, you should see one headset showing up in steamvr menu and 'Streamer: Connected' in ALVR dashboard."
+echor "After you have done with this, press enter here, and don't close alvr dashboard."
 read
-echog "Downloading ALVR apk, you can install it now from the $(realpath "$PWD")  folder into your headset using either ADB or Sidequest on host."
+echog "Downloading ALVR apk, you can install it now from the $prefix folder into your headset using either ADB or Sidequest on your system."
 wget -q --show-progress "$ALVR_APK_LINK"
-echog "Don't close ALVR."
 
 STEP_INDEX=4
 sleep 2
 
 # installing wlxoverlay
-echog "For Desktop usability, we will install WlxOverlay, it works on Wayland and has ability to control whole desktop from inside VR."
+echog "For using desktop from inside vr instead of broken steamvr overlay, we will install WlxOverlay."
 wget -q --show-progress -O "$WLXOVERLAY_FILENAME" "$WLXOVERLAY_LINK"
 chmod +x "$WLXOVERLAY_FILENAME"
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
-   echog "If you're not (on wlroots-based compositor like Sway), it will ask for display to choose. Choose the one display that contains every other (usually first in list)."
+   echog "If you're not (on wlroots-based compositor like Sway), it will ask for display to choose. Choose each display individually."
 fi
-./"$WLXOVERLAY_FILENAME" &>/dev/null &
+./"$WLXOVERLAY_FILENAME" &2>/dev/null &
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
    echog "If everything went well, you might see little icon on your desktop that indicates that screenshare is happening (by WlxOverlay) created by xdg portal."
 fi
@@ -123,7 +132,7 @@ read
 STEP_INDEX=5
 sleep 2
 
-# patching steamvr (without it, steamvr might lag to hell )
+# patching steamvr (without it, steamvr might lag to hell)
 ../patch_bindings_spam.sh "$HOME/.steam/steam/steamapps/common/SteamVR"
 
 cleanup_alvr
@@ -135,7 +144,6 @@ sleep 2
 # post messages
 echog "From that point on, ALVR should be installed and WlxOverlay should be working. Please refer to https://github.com/galister/WlxOverlay/wiki/Getting-Started to familiarise with controls."
 echor "To start alvr now you need to use start-alvr.sh script from this repository. It will also open Steam for you."
-echog "In case you want to enter into container, write 'source setup-env.sh && distrobox-enter $container_name' in console"
+echog "In case you want to enter into container, use './open-container.sh' in terminal"
 echog "Don't forget to enable Steam Play for all supported titles with latest (non-experimental) proton to make all games visible as playable in Steam."
-echog "To start WlxOverlay for using desktop in vr , open start-overlay.sh script."
 echog "Thank you for using the script! Continue with installing alvr apk to headset and with very important Post-installation notes to configure ALVR and SteamVR"

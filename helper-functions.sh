@@ -26,7 +26,7 @@ function cleanup_alvr() {
 }
 
 function wait_for_initial_steamvr() {
-   for steamvr_process in vrmonitor vrwebhelper vrserver; do
+   for steamvr_process in vrmonitor vrserver; do
       until pidof "$steamvr_process" &>/dev/null; do
          sleep 1
       done
@@ -41,39 +41,42 @@ function wait_for_full_steamvr() {
    done
 }
 
-function init_prefixed_installation() {
-   positional=()
-   if [[ "$#" -eq 0 ]]; then
-      echog "Using default installation with default name"
+function log_system() {
+   cat /etc/os-release
+}
+
+function detect_gpu_count() {
+   lspci | grep -ic vga
+}
+
+function detect_gpu() {
+   local gpu
+   gpu=$(lspci | grep -i vga | tr '[:upper:]' '[:lower:]')
+   if [[ $gpu == *"amd"* ]]; then
+      echo 'amd'
+      return
+   elif [[ $gpu == *"nvidia"* ]]; then
+      echo 'nvidia'
+      return
+   else
+      echo 'intel'
       return
    fi
-   before_prefix="$prefix"
-   before_container_name="$container_name"
-   while [[ "$#" -gt 0 ]]; do
-      case $1 in
-      -p | --prefix)
-         prefix="$(realpath "$2")"
-         shift
-         ;;
-      -c | --container-name)
-         container_name="$2"
-         shift
-         ;;
-      -*)
-         echor "Unknown parameter passed: $1"
-         exit 1
-         ;;
-      *)
-         positional+=("$1")
-         shift
-         ;;
-      esac
-      shift
-   done
-   if [[ "$before_prefix" == "$prefix" ]] || [[ "$before_container_name" == "$container_name" ]]; then
-      echor "You must choose both prefix and container name to use prefixed installation"
-      exit 1
+}
+
+function detect_audio() {
+   if [[ -n "$(pgrep pipewire)" ]]; then
+      echo 'pipewire'
+   elif [[ -n "$(pgrep pulseaudio)" ]]; then
+      echo 'pulse'
+   else
+      echo 'none'
    fi
-   export prefix
-   export container_name
+}
+
+function sanity_check_for_container() {
+   if [ "$(distrobox list | grep -c $container_name)" -ne 1 ]; then
+      echo 1
+   fi
+   echo 0
 }

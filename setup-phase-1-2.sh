@@ -1,40 +1,7 @@
 #!/bin/bash
 
 source ./helper-functions.sh
-
-prefix="installation"
-container_name="arch-alvr"
-system_lilipod_install=1
-system_distrobox_install=1
-
-function log_system() {
-   cat /etc/os-release
-}
-
-function detect_gpu() {
-   local gpu
-   gpu=$(lspci | grep -i vga | tr '[:upper:]' '[:lower:]')
-   if [[ $gpu == *"amd"* ]]; then
-      echo 'amd'
-      return
-   elif [[ $gpu == *"nvidia"* ]]; then
-      echo 'nvidia'
-      return
-   else
-      echo 'intel'
-      return
-   fi
-}
-
-function detect_audio() {
-   if [[ -n "$(pgrep pipewire)" ]]; then
-      echo 'pipewire'
-   elif [[ -n "$(pgrep pulseaudio)" ]]; then
-      echo 'pulse'
-   else
-      echo 'none'
-   fi
-}
+source ./env.sh
 
 function phase1_lilipod_distrobox_install() {
    echor "Phase 1"
@@ -44,27 +11,16 @@ function phase1_lilipod_distrobox_install() {
       exit 1
    }
 
-   if ! which lilipod; then
-      system_lilipod_install=0
-      echog "Installing lilipod"
-      wget -O lilipod https://github.com/89luca89/lilipod/releases/download/v0.0.1/lilipod-linux-amd64
-      chmod +x lilipod
-      mkdir -p "$HOME/.local/bin"
-      mv lilipod "$HOME/.local/bin"
-   fi
+   echog "Installing lilipod"
+   wget -O lilipod https://github.com/89luca89/lilipod/releases/download/v0.0.1/lilipod-linux-amd64
+   chmod +x lilipod
+   mkdir -p "$prefix/bin"
+   mv lilipod "$prefix/bin"
 
-   if ! which distrobox; then
-      echog "Installing distrobox"
-      system_distrobox_install=0
-      distrobox_commit="1.6.0.1" # commit lock to not have sudden changes in behaviour
+   echog "Installing distrobox"
+   distrobox_version="1.6.0.1" # commit lock to not have sudden changes in behaviour
+   curl -s https://raw.githubusercontent.com/89luca89/distrobox/"$distrobox_version"/install | sh -s -- --prefix "$prefix"
 
-      git clone https://github.com/89luca89/distrobox.git distrobox
-      cd distrobox || exit
-      git checkout "$distrobox_commit"
-      mkdir -p "$HOME/.local/bin"
-      ./install
-      cd ..
-   fi
    cd ..
 }
 
@@ -73,29 +29,23 @@ function phase2_distrobox_container_creation() {
    GPU=$(detect_gpu)
    AUDIO_SYSTEM=$(detect_audio)
 
-   source ./setup-dev-env.sh "$prefix"
-
    # Sanity checks
-   if [[ "$system_lilipod_install" == 0 ]]; then
-      if [[ "$(which lilipod)" != "$HOME/.local/bin/lilipod" ]]; then
-         echor "Failed to install lilipod properly"
-         exit 1
-      fi
+   if [[ "$(which lilipod)" != "$prefix/bin/lilipod" ]]; then
+      echor "Failed to install lilipod properly"
+      exit 1
    fi
-   if [[ "$system_distrobox_install" == 0 ]]; then
-      if [[ "$(which distrobox)" != "$HOME/.local/bin/distrobox" ]]; then
-         echor "Failed to install distrobox properly"
-         exit 1
-      fi
+   if [[ "$(which distrobox)" != "$prefix/bin/distrobox" ]]; then
+      echor "Failed to install distrobox properly"
+      exit 1
    fi
 
    echo "$GPU" | tee "$prefix/specs.conf"
    if [[ "$GPU" == "amd" ]]; then
-      distrobox-create --pull --image docker.io/library/archlinux:latest \
+      distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$PWD/$prefix/$container_name"
+         --home "$prefix/$container_name"
       if [ $? -ne 0 ]; then
-         echor "Couldn't create distrobox container, please report it to maintainer."
+         echor "Couldn't create distrobox container, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
          exit 1
       fi
@@ -105,12 +55,12 @@ function phase2_distrobox_container_creation() {
          echor "Couldn't find CUDA on host, please install it, reboot and try again, as it's required for NVENC encoder support."
          exit 1
       fi
-      distrobox-create --pull --image docker.io/library/archlinux:latest \
+      distrobox create --pull --image docker.io/library/archlinux:latest \
          --name "$container_name" \
-         --home "$PWD/$prefix/$container_name" \
+         --home "$prefix/$container_name" \
          --nvidia
       if [ $? -ne 0 ]; then
-         echor "Couldn't create distrobox container, please report it to maintainer."
+         echor "Couldn't create distrobox container, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
          echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
          exit 1
       fi
@@ -123,30 +73,24 @@ function phase2_distrobox_container_creation() {
    if [[ "$AUDIO_SYSTEM" == "pulse" ]]; then
       echor "Do note that pulseaudio won't work with automatic microphone routing as it requires pipewire."
    elif [[ "$AUDIO_SYSTEM" != "pipewire" ]]; then
-      echor "Unsupported audio system ($AUDIO_SYSTEM). Please report this issue to maintainer."
+      echor "Unsupported audio system ($AUDIO_SYSTEM). please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       exit 1
    fi
 
-   if [[ "$system_lilipod_install" == 0 ]] || [[ "$system_distrobox_install" == 0 ]]; then
-      echo "lilipod-$system_lilipod_install:distrobox-$system_distrobox_install" | tee -a "$prefix/specs.conf"
-   fi
-
-   distrobox-enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
    if [ $? -ne 0 ]; then
-      echor "Couldn't install distrobox container first time at phase 3, please report it as an issue with attached setup.log from the directory."
+      echor "Couldn't install distrobox container first time at phase 3, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc
       exit 1
    fi
-   distrobox-stop --name "$container_name" --yes
-   distrobox-enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-4.sh
+   distrobox stop "$container_name" --yes
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-4.sh
    if [ $? -ne 0 ]; then
-      echor "Couldn't install distrobox container first time at phase 4, please report it as an issue with attached setup.log from the directory."
+      echor "Couldn't install distrobox container first time at phase 4, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc
       exit 1
    fi
 }
-
-init_prefixed_installation "$@"
 
 # Sanity checks
 if [ "$EUID" -eq 0 ]; then
@@ -162,8 +106,21 @@ if [[ "$prefix" =~ \  ]]; then
    echor "Please clone or unpack repository into another directory that doesn't contain spaces."
    exit 1
 fi
+if [ "$(detect_gpu_count)" -ne 1 ]; then
+   echor "Multi-gpu systems are not yet supported with this installation method."
+   echor "Please either disable igpu completely in UEFI/BIOS"
+   echor "Or proceed with system-wide installation (using appimage) instead - with optimus manager for Nvidia to use only Nvidia"
+   exit 1
+fi
+if ! getsubids -g "$(whoami)"; then
+   echor "Couldn't verify getsubids command, do you have installed and updated getsubids/shadow package?"
+   exit 1
+fi
+
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam
+
+source ./setup-env.sh
 
 log_system
 phase1_lilipod_distrobox_install

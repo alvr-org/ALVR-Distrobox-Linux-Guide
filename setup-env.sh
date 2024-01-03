@@ -15,4 +15,4 @@ if [[ -z "$WAYLAND_DISPLAY" ]]; then
 fi
 
 export prefix
-export PATH="$prefix/bin/:$PATH"
+export PATH="$prefix/bin:$PATH"

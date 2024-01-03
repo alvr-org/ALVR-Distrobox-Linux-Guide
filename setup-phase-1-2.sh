@@ -5,13 +5,13 @@ source ./env.sh
 
 function phase1_lilipod_distrobox_install() {
    echor "Phase 1"
-   mkdir "$prefix"
+   mkdir -p "$prefix"
    cd "$prefix" || {
       echor "Couldn't go into installation folder on phase 1, aborting."
       exit 1
    }
 
-   if ! command -v getsubid &>/dev/null; then
+   if ! command -v getsubids &>/dev/null; then
       # Most likely for ubuntu 22.04, related https://github.com/89luca89/lilipod/issues/7
       echog "You don't seem to have getsubids command, i will use whipped one instead"
       echog "But considering this fact, things might not work correctly for your distribution"

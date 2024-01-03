@@ -121,7 +121,8 @@ chmod +x "$WLXOVERLAY_FILENAME"
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
    echog "If you're not (on wlroots-based compositor like Sway), it will ask for display to choose. Choose each display individually."
 fi
-./"$WLXOVERLAY_FILENAME" &2>/dev/null &
+./"$WLXOVERLAY_FILENAME" &
+2>/dev/null &
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
    echog "If everything went well, you might see little icon on your desktop that indicates that screenshare is happening (by WlxOverlay) created by xdg portal."
 fi

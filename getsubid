@@ -1,0 +1,12 @@
+#!/bin/bash
+# Taken from https://github.com/89luca89/lilipod/issues/7#issuecomment-1870507828
+re="^$USER:"
+index=0
+while IFS= read -r line || [ -n "$line" ]
+do
+  [[ $line =~ $re ]] &&
+    echo "$index ${line//:/ }" &&
+      exit 0
+  index=$((index+1))
+done < /etc/subuid
+exit 1

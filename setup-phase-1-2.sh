@@ -11,6 +11,18 @@ function phase1_lilipod_distrobox_install() {
       exit 1
    }
 
+   if ! command -v getsubid &>/dev/null; then
+      # Most likely for ubuntu 22.04, related https://github.com/89luca89/lilipod/issues/7
+      echog "You don't seem to have getsubid command, i will use whipped one instead"
+      echog "But considering this fact, things might not work correctly for your distribution"
+      cp "../getsubid" "$prefix/bin"
+   else
+      if ! getsubids -g "$(whoami)"; then
+         echor "Couldn't verify getsubids command, do you have updated getsubid/shadow package?"
+         exit 1
+      fi
+   fi
+
    echog "Installing lilipod"
    wget -O lilipod https://github.com/89luca89/lilipod/releases/download/v0.0.1/lilipod-linux-amd64
    chmod +x lilipod
@@ -110,10 +122,6 @@ if [ "$(detect_gpu_count)" -ne 1 ]; then
    echor "Multi-gpu systems are not yet supported with this installation method."
    echor "Please either disable igpu completely in UEFI/BIOS"
    echor "Or proceed with system-wide installation (using appimage) instead - with optimus manager for Nvidia to use only Nvidia"
-   exit 1
-fi
-if ! getsubids -g "$(whoami)"; then
-   echor "Couldn't verify getsubids command, do you have installed and updated getsubids/shadow package?"
    exit 1
 fi
 

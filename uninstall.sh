@@ -26,6 +26,13 @@ DBX_SUDO_PROGRAM="$ROOT_PERMS_COMMAND" distrobox rm --rm-home "$container_name" 
 
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.6.0.1/uninstall | sh -s -- --prefix "$prefix"
 
-"$ROOT_PERMS_COMMAND" rm -rf "$prefix"
+echor "Confirm deletion of $prefix folder? (y/n)"
+echor "Be careful as it uses superuser access to delete it!"
+read -r CONFIRM_DELETE
+if [ "$CONFIRM_DELETE" = "y" ] || [ "$CONFIRM_DELETE" = "Y" ]; then
+   "$ROOT_PERMS_COMMAND" rm -rf "$prefix"
+else
+   echor "Did not delete $prefix folder"
+fi
 
 echog "Uninstall completed."

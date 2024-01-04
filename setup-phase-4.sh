@@ -97,10 +97,13 @@ read
 export STEP_INDEX=3
 sleep 2
 
-echog "Installing alvr"
+echog "Installing alvr, compilation might take a loong time (up to 15-20 minutes or more depending on CPU)."
+echog "If during compiling you think it's frozen, don't close it, it's still compiling."
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
 # temporarily changed to nightly alvr until after 20.5.0
 paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+# clear cache, alvr targets folder might take up to 10 gb
+yes | paru -q --noprogressbar -Scc || exit 1
 alvr_dashboard &>/dev/null &
 echog "ALVR and dashboard now launch. Proceed with setup wizard in Installation tab -> Run setup wizard and after finishing it, continue there."
 echog "Setting firewall rules will fail and it's normal, not yet available to do when using this installation method."
@@ -109,7 +112,7 @@ echog "Launch SteamVR using button on left lower corner and after starting steam
 echor "After you have done with this, press enter here, and don't close alvr dashboard."
 read
 echog "Downloading ALVR apk, you can install it now from the $prefix folder into your headset using either ADB or Sidequest on your system."
-wget -q --show-progress "$ALVR_APK_LINK"
+wget -q --show-progress "$ALVR_APK_LINK" || echor "Could not download apk, please download it from $ALVR_APK_LINK manually."
 
 STEP_INDEX=4
 sleep 2
@@ -121,8 +124,7 @@ chmod +x "$WLXOVERLAY_FILENAME"
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
    echog "If you're not (on wlroots-based compositor like Sway), it will ask for display to choose. Choose each display individually."
 fi
-./"$WLXOVERLAY_FILENAME" &
-2>/dev/null &
+./"$WLXOVERLAY_FILENAME" &>/dev/null &
 if [[ "$WAYLAND_DISPLAY" != "" ]]; then
    echog "If everything went well, you might see little icon on your desktop that indicates that screenshare is happening (by WlxOverlay) created by xdg portal."
 fi

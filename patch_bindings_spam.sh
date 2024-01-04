@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Latest known working version for patching: 1.27.5"
+echo "Latest known working version for patching: 2.2.3"
 
 if [[ -z "$1" ]]; then
 	echo 'Enter absolute path to SteamVR (for example, /home/user/.local/share/Steam/steamapps/common/SteamVR)'
@@ -20,7 +20,7 @@ echo 'In case of failed patching, please re-validate SteamVR files to make sure 
 echo Deleting SteamVR html cache
 rm -r ~/.cache/SteamVR
 
-CHANGED_OUT=$(sed -i 's/m=n(1380),g=n(9809);/m=n(1380),g=n(9809),refresh_counter=0,refresh_counter_max=75;/g w /dev/stdout' $PATH_TO_PATCHING_FILE )
+CHANGED_OUT=$(sed -i 's/m=n(1380),g=n(9809);/m=n(1380),g=n(9809),refresh_counter=0,refresh_counter_max=75;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1

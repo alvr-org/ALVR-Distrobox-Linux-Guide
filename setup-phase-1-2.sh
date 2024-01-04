@@ -124,6 +124,13 @@ if [ "$(detect_gpu_count)" -ne 1 ]; then
    echor "Or proceed with system-wide installation (using appimage) instead - with optimus manager for Nvidia to use only Nvidia"
    exit 1
 fi
+disk_space=$(df -Pkh . | sed 1d | grep -v used | awk '{ print $4 "\t" }')
+disk_space=${disk_space::-1}
+if (( disk_space < 15)); then
+   echor "Installation might require up to least 15 gb during installation and close to 10 gb including steamvr after."
+   echor "You have less than 15 gb of free space available, exiting."
+   exit 1
+fi
 
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam

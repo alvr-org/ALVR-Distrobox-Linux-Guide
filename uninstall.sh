@@ -17,8 +17,8 @@ if ! command -v sudo &>/dev/null; then
 fi
 
 lilipod stop "$container_name" 2>/dev/null
-lilipod rm --all
-lilipod rmi --all
+lilipod rm "$container_name"
+lilipod rmi "$container_name"
 rm "$prefix/bin/lilipod"
 
 echog "Script will ask for sudo because it needs to remove container libpod files that can't be remove without superuser access"

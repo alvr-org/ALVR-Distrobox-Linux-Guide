@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Latest known working version for patching: 2.2.3"
+echo "Latest known working version for patching: 2.3.5"
 
 if [[ -z "$1" ]]; then
 	echo 'Enter absolute path to SteamVR (for example, /home/user/.local/share/Steam/steamapps/common/SteamVR)'
@@ -34,7 +34,7 @@ if [[ -z $CHANGED_OUT ]]; then
 else
 	echo "patched 2"
 fi
-CHANGED_OUT=$(sed -i 's/l=n(3568),c=n(1073);/l=n(3568),c=n(1073),refresh_counter_v2=0,refresh_counter_max_v2=75;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
+CHANGED_OUT=$(sed -i 's/l=n(3568),c=n(1569);/l=n(3568),c=n(1569),refresh_counter_v2=0,refresh_counter_max_v2=75;/g w /dev/stdout' $PATH_TO_PATCHING_FILE)
 if [[ -z $CHANGED_OUT ]]; then
 	echo "Couldn't patch, exiting"
 	exit 1

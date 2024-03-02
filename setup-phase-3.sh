@@ -15,19 +15,17 @@ cd "$prefix" || {
    exit 1
 }
 
-# Sanity checks (TODO: sanity check for distrobox/lilipod installation as well?)
-# Get current gpu (and version in case if it's nvidia from configuration)
-GPU="$(head <specs.conf -1 | tail -2)"
-if [[ "$GPU" == nvidia* ]]; then
-   GPU=$(echo "$GPU" | cut -d' ' -f1)
-fi
-if [[ "$GPU" != "nvidia" ]] && [[ "$GPU" != "amd" ]]; then
-   echor "Something has gone wrong with specs.conf GPU reading, aborting install"
+sudo pacman -q --noprogressbar -Syu jq --noconfirm || exit 1
+
+GPU=$(jq -r '.gpu' <specs.json || exit 1)
+
+if [[ "$GPU" != "nvidia" ]] && [[ "$GPU" != "amd" ]] && [[ "$GPU" != "intel" ]]; then
+   echor "Something has gone wrong with specs GPU reading, aborting install"
    exit 1
 fi
-AUDIO_SYSTEM="$(head <specs.conf -2 | tail -1)"
+GPU=$(jq -r '.audio' <specs.json)
 if [[ "$AUDIO_SYSTEM" != "pipewire" ]] && [[ "$GPU" != "pulse" ]]; then
-   echor "Something has gone wrong with specs.conf AUDIO_SYSTEM reading, aborting install"
+   echor "Something has gone wrong with specs AUDIO_SYSTEM reading, aborting install"
    exit 1
 fi
 
@@ -40,12 +38,12 @@ echo "[multilib]" | sudo tee -a /etc/pacman.conf
 echo "Include = /etc/pacman.d/mirrorlist" | sudo tee -a /etc/pacman.conf
 echog "Setting up locales"
 echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
-sudo pacman-key --init
+sudo pacman-key --init || exit 1
 echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf
 echo "LC_ALL=en_US.UTF-8" | sudo tee /etc/locale.conf
 echo "export LANG=en_US.UTF-8 #alvr-distrobox" | tee -a ~/.bashrc
 echo "export LC_ALL=en_US.UTF-8 #alvr-distrobox" | tee -a ~/.bashrc
-sudo pacman -q --noprogressbar -Syu glibc lib32-glibc xdg-utils qt5-tools qt5-multimedia at-spi2-core lib32-at-spi2-core --noconfirm
+sudo pacman -q --noprogressbar -Syu glibc lib32-glibc xdg-utils qt5-tools qt5-multimedia at-spi2-core lib32-at-spi2-core tar wget --noconfirm || exit 1
 
 cd ..
 

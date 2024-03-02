@@ -18,4 +18,4 @@ if ! sanity_check_for_container; then
 fi
 
 echog "Starting WlxOverlay"
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- $prefix/WlxOverlay.AppImage
+distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- "$prefix"/"$WLXOVERLAY_FILENAME"

@@ -12,7 +12,7 @@ function phase1_lilipod_distrobox_install() {
    }
 
    if ! command -v getsubids &>/dev/null; then
-      # Most likely for ubuntu 22.04, related https://github.com/89luca89/lilipod/issues/7
+      # Most likely for ubuntu 22.04 and older distros, related https://github.com/89luca89/lilipod/issues/7
       echog "You don't seem to have getsubids command, i will use whipped one instead"
       echog "But considering this fact, things might not work correctly for your distribution"
       cp "../getsubids" "$prefix/bin/"
@@ -30,7 +30,7 @@ function phase1_lilipod_distrobox_install() {
    mv lilipod "$prefix/bin"
 
    echog "Installing distrobox"
-   distrobox_version="1.6.0.1" # commit lock to not have sudden changes in behaviour
+   distrobox_version="1.7.0" # commit lock to not have sudden changes in behaviour
    curl -s https://raw.githubusercontent.com/89luca89/distrobox/"$distrobox_version"/install | sh -s -- --prefix "$prefix"
 
    cd ..
@@ -41,7 +41,7 @@ function phase2_distrobox_container_creation() {
    GPU=$(detect_gpu)
    AUDIO_SYSTEM=$(detect_audio)
 
-   # Sanity checks
+   # Sanity checks for phase 1
    if [[ "$(which lilipod)" != "$prefix/bin/lilipod" ]]; then
       echor "Failed to install lilipod properly"
       exit 1
@@ -51,37 +51,32 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
 
-   echo "$GPU" | tee "$prefix/specs.conf"
-   if [[ "$GPU" == "amd" ]]; then
-      distrobox create --pull --image docker.io/library/archlinux:latest \
+   jq -n --arg gpu "$GPU" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+   if [[ "$GPU" == "amd" ]] || [[ "$GPU" == "intel" ]]; then
+      distrobox create --pull --image docker.io/archlinux/archlinux:latest \
          --name "$container_name" \
          --home "$prefix/$container_name"
-      if [ $? -ne 0 ]; then
-         echor "Couldn't create distrobox container, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
-         echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
-         exit 1
-      fi
    elif [[ "$GPU" == nvidia* ]]; then
       CUDA_LIBS="$(find /usr/lib* -iname "libcuda*.so*")"
       if [[ -z "$CUDA_LIBS" ]]; then
          echor "Couldn't find CUDA on host, please install it, reboot and try again, as it's required for NVENC encoder support."
          exit 1
       fi
-      distrobox create --pull --image docker.io/library/archlinux:latest \
+      distrobox create --pull --image docker.io/archlinux/archlinux:latest \
          --name "$container_name" \
          --home "$prefix/$container_name" \
          --nvidia
-      if [ $? -ne 0 ]; then
-         echor "Couldn't create distrobox container, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
-         echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
-         exit 1
-      fi
    else
-      echor "Intel is not supported yet."
+      echor "Unsupported gpu found, can't proceed. Please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
+      exit 1
+   fi
+   if [ $? -ne 0 ]; then
+      echor "Couldn't create distrobox container, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
+      echor "GPU: $GPU; AUDIO SYSTEM: $AUDIO_SYSTEM"
       exit 1
    fi
 
-   echo "$AUDIO_SYSTEM" | tee -a "$prefix/specs.conf"
+   jq -n --arg audio "$AUDIO_SYSTEM" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
    if [[ "$AUDIO_SYSTEM" == "pulse" ]]; then
       echor "Do note that pulseaudio won't work with automatic microphone routing as it requires pipewire."
    elif [[ "$AUDIO_SYSTEM" != "pipewire" ]]; then
@@ -104,33 +99,51 @@ function phase2_distrobox_container_creation() {
    fi
 }
 
-# Sanity checks
-if [ "$EUID" -eq 0 ]; then
-   echo "Please don't run this script as root (no sudo)."
-   exit 1
-fi
-if [[ -e "$prefix" ]]; then
-   echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
-   exit 1
-fi
-if [[ "$prefix" =~ \  ]]; then
-   echor "File path to container can't contains spaces as SteamVR will fail to launch if path to it contains spaces."
-   echor "Please clone or unpack repository into another directory that doesn't contain spaces."
-   exit 1
-fi
-if [ "$(detect_gpu_count)" -ne 1 ]; then
-   echor "Multi-gpu systems are not yet supported with this installation method."
-   echor "Please either disable igpu completely in UEFI/BIOS"
-   echor "Or proceed with system-wide installation (using appimage) instead - with optimus manager for Nvidia to use only Nvidia"
-   exit 1
-fi
-disk_space=$(df -Pk . | sed 1d | grep -v used | awk '{ print $4 "\t" }')
-disk_space=$(( 10#${disk_space} / 1024 / 1024 ))
-if (( disk_space < 15)); then
-   echor "Installation might require up to least 15 gb during installation and close to 10 gb including steamvr after."
-   echor "You have less than 15 gb of free space available, exiting."
-   exit 1
-fi
+function sanity_checks() {
+   if [ "$EUID" -eq 0 ]; then
+      echo "Please don't run this script as root (no sudo)."
+      exit 1
+   fi
+   if [[ -e "$prefix" ]]; then
+      echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
+      exit 1
+   fi
+   if [[ "$prefix" =~ \  ]]; then
+      echor "File path to container can't contains spaces as SteamVR will fail to launch if path to it contains spaces."
+      echor "Please clone or unpack repository into another directory that doesn't contain spaces."
+      exit 1
+   fi
+   if [ "$(detect_gpu_count)" -ne 1 ]; then
+      echog "Multi-gpu systems might not work with this installation, but script will still continue and attempt to work."
+      echog "For this to work on INTEL + NVIDIA setup you must use 'prime-run %command%' (without quotes) on each game commandline parameters in Steam."
+      echor "Please confirm that you have read line above and know what to do (y/N)"
+      read -r CONFIRM
+      if [[ $CONFIRM != "y" ]] && [[ $CONFIRM != "Y" ]]; then
+         echor "User has not acknowledged notice, exiting."
+         exit 1
+      fi
+      jq -n --arg multi_gpu "1" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+   else
+      jq -n --arg multi_gpu "0" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+   fi
+   disk_space=$(df -Pk . | sed 1d | grep -v used | awk '{ print $4 "\t" }')
+   disk_space=$((10#${disk_space} / 1024 / 1024))
+   jq -n --arg disk_space "$disk_space" '. +=$ARGS.named' | tee "$prefix/specs.json"
+   if ((disk_space < 15)); then
+      echor "Installation might require up to least 15 gb during installation (steamvr + alvr build)."
+      echor "You have less than 15 gb of free space available, please free up space for installation."
+      exit 1
+   fi
+}
+
+function install_jq() {
+   # Install jq to local PATH for script
+   wget https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
+   mv jq-linux-amd64 "$prefix/bin/jq"
+}
+
+install_jq
+sanity_checks
 
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam

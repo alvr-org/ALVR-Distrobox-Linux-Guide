@@ -4,7 +4,7 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-STEAMVR_PROCESSES=( vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup )
+STEAMVR_PROCESSES=(vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup)
 
 function echog() {
    echo -e "${RED}${STEP_INDEX}${NC} : ${GREEN}$1${NC}"
@@ -54,13 +54,12 @@ function detect_gpu() {
    gpu=$(lspci | grep -i vga | tr '[:upper:]' '[:lower:]')
    if [[ $gpu == *"amd"* ]]; then
       echo 'amd'
-      return
    elif [[ $gpu == *"nvidia"* ]]; then
       echo 'nvidia'
-      return
-   else
+   elif [[ $gpu == *"intel"* ]]; then
       echo 'intel'
-      return
+   else
+      echo 'unknown'
    fi
 }
 
@@ -70,7 +69,7 @@ function detect_audio() {
    elif [[ -n "$(pgrep pulseaudio)" ]]; then
       echo 'pulse'
    else
-      echo 'none'
+      echo 'unknown'
    fi
 }
 

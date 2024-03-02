@@ -11,7 +11,7 @@ source ./helper-functions.sh
 source ./setup-env.sh
 
 if [ "$(sanity_check_for_container)" -eq 1 ]; then
-   echor "There is more or less than 1 container, something has gone wrong."
+   echor "There is more or less than 1 alvr container, something has gone wrong."
    echor "Please report setup.log and list bellow to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues"
    distrobox list
    exit 1

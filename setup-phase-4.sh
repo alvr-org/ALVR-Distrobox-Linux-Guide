@@ -17,7 +17,7 @@ cd "$prefix" || {
 
 GPU=$(jq -r '.gpu' <specs.json || exit 1)
 AUDIO_SYSTEM=$(jq -r '.audio' <specs.json || exit 1)
-MULTI_GPU_=$(jq -r '.multi_gpu' <specs.json || exit 1)
+MULTI_GPU=$(jq -r '.multi_gpu' <specs.json || exit 1)
 
 echog "Installing packages for base functionality."
 sudo pacman -q --noprogressbar -Syu git vim base-devel noto-fonts xdg-user-dirs fuse libx264 sdl2 libva-utils xorg-server --noconfirm || exit 1
@@ -33,7 +33,7 @@ if [[ "$GPU" == "amd" ]]; then
    sudo pacman -q --noprogressbar -Syu libva-mesa-driver vulkan-radeon lib32-vulkan-radeon lib32-libva-mesa-driver --noconfirm || exit 1
 elif [[ "$GPU" == "nvidia" ]]; then
    echog "Using host system driver mounts, not installing nvidia drivers."
-   if [[ "$MULTI_GPU_" == "1" ]]; then
+   if [[ "$MULTI_GPU" == "1" ]]; then
       echog "But installing prime-run for running steamvr, games on your DGPU."
       sudo pacman -q --noprogressbar -Syu prime-run --noconfirm --assume-installed nvidia-utils || exit 1
    fi
@@ -84,7 +84,7 @@ tar xzf main.tar.gz -C "$HOME/.steam/steam/compatibilitytools.d"
 if [[ -n "$WAYLAND_DISPLAY" ]]; then
    # Assuming that we only have one SteamVR installed, it will replace only for SteamVR
    echog "Patching steam commandline options to allow proper steamvr launching on wayland."
-   if [[ $MULTI_GPU_ == "1" ]]; then
+   if [[ $MULTI_GPU == "1" ]]; then
       sed -iv 's|"LaunchOptions"[[:space:]]*""|"LaunchOptions"         "WAYLAND_DISPLAY='' prime-run %command%"|g' "$HOME/.steam/steam/userdata/80832101/config/localconfig.vdf" ||
          echor "Couldn't patch wayland display variable om steamvr commandline options, you might want to set it manually: WAYLAND_DISPLAY='' prime-run %command%"
    else

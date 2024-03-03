@@ -138,7 +138,7 @@ function sanity_checks() {
 function install_jq() {
    # Install jq to local PATH for script
    mkdir -p "$prefix/bin"
-   wget -q --show-progress -P "$prefix"/bin -O jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
+   wget -q --show-progress -O "$prefix/bin/jq" https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
 }
 
 install_jq

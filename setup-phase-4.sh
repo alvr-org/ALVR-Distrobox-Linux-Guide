@@ -45,7 +45,7 @@ elif [[ "$GPU" == "intel" ]]; then
       https://archive.archlinux.org/packages/v/vulkan-intel/vulkan-intel-23.1.4-2-x86_64.pkg.tar.zst \
       https://archive.archlinux.org/packages/l/lib32-vulkan-intel/lib32-vulkan-intel-23.1.4-2-x86_64.pkg.tar.zst --noconfirm || exit 1
 else
-   echor "Unknown gpu - $GPU, exiting!"
+   echor "Unknown gpu, exiting."
    exit 1
 fi
 if [[ "$AUDIO_SYSTEM" == "pipewire" ]]; then
@@ -98,7 +98,7 @@ pkill steam
 sleep 3
 pkill -9 steam
 
-echog "Next prompt for superuser access prevents annoying popup from steamvr (yes/no with asking for superuser) that prevents steamvr from launching automatically."
+echog "Next prompt for superuser access prevents annoying popup from steamvr that prevents steamvr from launching automatically."
 distrobox-host-exec pkexec setcap CAP_SYS_NICE+ep "$HOME/.steam/steam/steamapps/common/SteamVR/bin/linux64/vrcompositor-launcher" ||
    echor "Couldn't setcap vrcompositor, steamvr will ask for permissions every single launch."
 
@@ -118,7 +118,11 @@ sleep 2
 echog "Installing alvr, compilation might take a loong time (up to 15-20 minutes or more depending on CPU)."
 echog "If during compiling you think it's frozen, don't close it, it's still compiling."
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
-paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+if [[ $IS_NIGHTLY -eq 1 ]]; then
+   paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+else
+   paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+fi
 # clear cache, alvr targets folder might take up to 10 gb
 yes | paru -q --noprogressbar -Scc || exit 1
 alvr_dashboard &>/dev/null &
@@ -129,8 +133,11 @@ echog "Launch SteamVR using button on left lower corner and after starting steam
 echor "After you have done with this, press enter here, and don't close alvr dashboard."
 read
 echog "Downloading ALVR apk, you can install it now from the $prefix folder into your headset using either ADB or Sidequest on your system."
-wget -q --show-progress "$ALVR_APK_LINK" || echor "Could not download apk, please download it from $ALVR_APK_LINK manually."
-
+if [[ $IS_NIGHTLY -eq 1 ]]; then
+   wget -q --show-progress "$NIGHTLY_ALVR_APK_LINK" || echor "Could not download apk, please download it from $NIGHTLY_ALVR_APK_LINK manually."
+else
+   wget -q --show-progress "$ALVR_APK_LINK" || echor "Could not download apk, please download it from $ALVR_APK_LINK manually."
+fi
 STEP_INDEX=4
 sleep 2
 

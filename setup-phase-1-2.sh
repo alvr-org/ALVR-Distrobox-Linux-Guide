@@ -123,7 +123,7 @@ function sanity_checks() {
       fi
       write_json multi_gpu 1 "$prefix/specs.json"
    else
-      write_json multi_gpu 1 "$prefix/specs.json"
+      write_json multi_gpu 0 "$prefix/specs.json"
    fi
    disk_space=$(df -Pk . | sed 1d | grep -v used | awk '{ print $4 "\t" }')
    disk_space=$((10#${disk_space} / 1024 / 1024))

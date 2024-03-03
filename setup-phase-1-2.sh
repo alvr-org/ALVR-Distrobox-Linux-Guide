@@ -5,7 +5,6 @@ source ./env.sh
 
 function phase1_lilipod_distrobox_install() {
    echor "Phase 1"
-   mkdir -p "$prefix/bin"
    cd "$prefix" || {
       echor "Couldn't go into installation folder on phase 1, aborting."
       exit 1
@@ -51,7 +50,7 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
 
-   jq -n --arg gpu "$GPU" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+   write_json gpu "$GPU" "$prefix/specs.json"
    if [[ "$GPU" == "amd" ]] || [[ "$GPU" == "intel" ]]; then
       distrobox create --pull --image docker.io/archlinux/archlinux:latest \
          --name "$container_name" \
@@ -76,7 +75,7 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
 
-   jq -n --arg audio "$AUDIO_SYSTEM" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+   write_json audio "$AUDIO_SYSTEM" "$prefix/specs.json"
    if [[ "$AUDIO_SYSTEM" == "pulse" ]]; then
       echor "Do note that pulseaudio won't work with automatic microphone routing as it requires pipewire."
    elif [[ "$AUDIO_SYSTEM" != "pipewire" ]]; then
@@ -104,7 +103,7 @@ function sanity_checks() {
       echo "Please don't run this script as root (no sudo)."
       exit 1
    fi
-   if [[ -e "$prefix" ]]; then
+   if [[ -e "$prefix/arch-alvr" ]]; then
       echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
       exit 1
    fi
@@ -122,13 +121,13 @@ function sanity_checks() {
          echor "User has not acknowledged notice, exiting."
          exit 1
       fi
-      jq -n --arg multi_gpu "1" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+      write_json multi_gpu 1 "$prefix/specs.json"
    else
-      jq -n --arg multi_gpu "0" '. +=$ARGS.named' | tee "$prefix/specs.json" || exit 1
+      write_json multi_gpu 1 "$prefix/specs.json"
    fi
    disk_space=$(df -Pk . | sed 1d | grep -v used | awk '{ print $4 "\t" }')
    disk_space=$((10#${disk_space} / 1024 / 1024))
-   jq -n --arg disk_space "$disk_space" '. +=$ARGS.named' | tee "$prefix/specs.json"
+   write_json disk_space "$disk_space" "$prefix/specs.json"
    if ((disk_space < 15)); then
       echor "Installation might require up to least 15 gb during installation (steamvr + alvr build)."
       echor "You have less than 15 gb of free space available, please free up space for installation."
@@ -138,8 +137,8 @@ function sanity_checks() {
 
 function install_jq() {
    # Install jq to local PATH for script
-   wget https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
-   mv jq-linux-amd64 "$prefix/bin/jq"
+   mkdir -p "$prefix/bin"
+   wget -q --show-progress -P "$prefix"/bin -O jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
 }
 
 install_jq

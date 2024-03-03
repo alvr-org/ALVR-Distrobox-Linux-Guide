@@ -15,9 +15,9 @@ cd "$prefix" || {
    exit 1
 }
 
-GPU=$(jq -r '.gpu' <specs.json || exit 1)
-AUDIO_SYSTEM=$(jq -r '.audio' <specs.json || exit 1)
-MULTI_GPU=$(jq -r '.multi_gpu' <specs.json || exit 1)
+GPU=$(jq -r '.gpu' specs.json || exit 1)
+AUDIO_SYSTEM=$(jq -r '.audio' specs.json || exit 1)
+MULTI_GPU=$(jq -r '.multi_gpu' specs.json || exit 1)
 
 echog "Installing packages for base functionality."
 sudo pacman -q --noprogressbar -Syu git vim base-devel noto-fonts xdg-user-dirs fuse libx264 sdl2 libva-utils xorg-server --noconfirm || exit 1

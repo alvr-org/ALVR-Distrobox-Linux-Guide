@@ -79,3 +79,17 @@ function sanity_check_for_container() {
    fi
    echo 0
 }
+
+function write_json() {
+   local field=$1
+   local value=$2
+   local path=$3
+
+   if [ ! -e "$path" ]; then
+      jq -n '{}' >"$path"
+   fi
+
+   jq --arg "$field" "$value" '. +=$ARGS.named' "$path" >"$path.tmp"
+
+   mv "$path.tmp" "$path"
+}

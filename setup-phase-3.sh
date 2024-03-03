@@ -17,13 +17,14 @@ cd "$prefix" || {
 
 sudo pacman -q --noprogressbar -Syu jq --noconfirm || exit 1
 
-GPU=$(jq -r '.gpu' specs.json || exit 1)
 
+GPU=$(read_json_field gpu specs.json || exit 1)
 if [[ "$GPU" != "nvidia" ]] && [[ "$GPU" != "amd" ]] && [[ "$GPU" != "intel" ]]; then
    echor "Something has gone wrong with specs GPU reading, aborting install"
    exit 1
 fi
-GPU=$(jq -r '.audio' specs.json || exit 1)
+
+AUDIO_SYSTEM=$(read_json_field audio specs.json || exit 1)
 if [[ "$AUDIO_SYSTEM" != "pipewire" ]] && [[ "$GPU" != "pulse" ]]; then
    echor "Something has gone wrong with specs AUDIO_SYSTEM reading, aborting install"
    exit 1

@@ -93,3 +93,9 @@ function write_json() {
 
    mv "$path.tmp" "$path"
 }
+
+function read_json_field() {
+   local field=$1
+   local path=$2
+   jq -r ".$field" "$path"
+}

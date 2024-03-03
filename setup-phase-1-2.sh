@@ -1,7 +1,8 @@
 #!/bin/bash
 
-source ./helper-functions.sh
 source ./env.sh
+source ./helper-functions.sh
+source ./setup-env.sh
 
 function phase1_lilipod_distrobox_install() {
    echor "Phase 1"
@@ -146,8 +147,6 @@ sanity_checks
 
 # Prevent host steam to be used during install, forcefully kill it (on steamos produces output like it tries to kill host processes and fails, fixme?...)
 pkill -f steam
-
-source ./setup-env.sh
 
 log_system
 phase1_lilipod_distrobox_install

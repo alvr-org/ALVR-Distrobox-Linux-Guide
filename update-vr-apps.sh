@@ -18,11 +18,19 @@ if [ "$(sanity_check_for_container)" -eq 1 ]; then
 fi
 
 echog "Updating arch container, alvr"
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm && paru -q --noprogressbar -Syu --noconfirm'
+if [[ $IS_NIGHTLY -eq 1 ]]; then
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm && paru -q --noprogressbar -Syu alvr-git --noconfirm'
+else
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm && paru -q --noprogressbar -Syu alvr --noconfirm'
+fi
 
 echog "Downloading alvr apk"
 rm "$prefix/alvr_client_android.apk"
-wget -q --show-progress -P "$prefix"/ "$ALVR_APK_LINK"
+if [[ $IS_NIGHTLY -eq 1 ]]; then
+   wget -q --show-progress -P "$prefix"/ "$NIGHTLY_ALVR_APK_LINK" || echor "Could not download apk, please download it from $NIGHTLY_ALVR_APK_LINK manually."
+else
+   wget -q --show-progress -P "$prefix"/ "$ALVR_APK_LINK" || echor "Could not download apk, please download it from $ALVR_APK_LINK manually."
+fi
 
 echog "Reinstalling wlxoverlay"
 rm "$prefix/$WLXOVERLAY_FILENAME"

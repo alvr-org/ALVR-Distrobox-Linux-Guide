@@ -118,7 +118,7 @@ sleep 2
 echog "Installing alvr, compilation might take a loong time (up to 15-20 minutes or more depending on CPU)."
 echog "If during compiling you think it's frozen, don't close it, it's still compiling."
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
-if [[ $IS_NIGHTLY -eq 1 ]]; then
+if [[ $IS_NIGHTLY -eq 1 ]] || [[ "$GPU" == "intel" ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
    paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
 else
    paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
@@ -133,7 +133,7 @@ echog "Launch SteamVR using button on left lower corner and after starting steam
 echor "After you have done with this, press enter here, and don't close alvr dashboard."
 read
 echog "Downloading ALVR apk, you can install it now from the $prefix folder into your headset using either ADB or Sidequest on your system."
-if [[ $IS_NIGHTLY -eq 1 ]]; then
+if [[ $IS_NIGHTLY -eq 1 ]] || [[ "$GPU" == "intel" ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
    wget -q --show-progress "$NIGHTLY_ALVR_APK_LINK" || echor "Could not download apk, please download it from $NIGHTLY_ALVR_APK_LINK manually."
 else
    wget -q --show-progress "$ALVR_APK_LINK" || echor "Could not download apk, please download it from $ALVR_APK_LINK manually."
@@ -141,7 +141,7 @@ fi
 STEP_INDEX=4
 sleep 2
 
-# installing wlxoverlay
+# installing wlxoverlay-s
 echog "For using desktop from inside vr instead of broken steamvr overlay, we will install WlxOverlay."
 wget -q --show-progress -O "$WLXOVERLAY_FILENAME" "$WLXOVERLAY_LINK"
 chmod +x "$WLXOVERLAY_FILENAME"

@@ -124,6 +124,10 @@ sleep 2
 echog "Installing alvr, compilation might take a loong time (up to 15-20 minutes or more depending on CPU)."
 echog "If during compiling you think it's frozen, don't close it, it's still compiling."
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
+if [[ "$GPU" == "intel" ]] && [[ $IS_NIGHTLY -eq 0 ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
+   echog "Intel support for ALVR is experimental and requires nightly, so it will be installed of stable release."
+   echog "Please use nightly client (will be downloaded later during this installation)"
+fi
 if [[ $IS_NIGHTLY -eq 1 ]] || [[ "$GPU" == "intel" ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
    paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
 else

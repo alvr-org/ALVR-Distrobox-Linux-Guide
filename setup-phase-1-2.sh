@@ -44,7 +44,7 @@ function phase1_lilipod_distrobox_install() {
    # Remove after https://github.com/89luca89/distrobox/issues/1261 fix
    sed -i 's/--pids-limit=-1//g' "$prefix/bin/distrobox-create"
 
-   # distrobox-generate-entry doesn't respect DBX_CONTAINER_MANAGER! report & fix upstream
+   # distrobox-generate-entry doesn't respect DBX_CONTAINER_MANAGER! Remove after updating distrobox and https://github.com/89luca89/distrobox/pull/1269
    sed -i 's/container_manager="autodetect"/container_manager="lilipod"/g' "$prefix/bin/distrobox-generate-entry"
 
    cd ..

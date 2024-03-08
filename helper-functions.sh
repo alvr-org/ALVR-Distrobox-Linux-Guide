@@ -4,7 +4,7 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-STEAMVR_PROCESSES=( vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup )
+STEAMVR_PROCESSES=(vrdashboard vrcompositor vrserver vrmonitor vrwebhelper vrstartup)
 
 function echog() {
    echo -e "${RED}${STEP_INDEX}${NC} : ${GREEN}$1${NC}"
@@ -54,13 +54,12 @@ function detect_gpu() {
    gpu=$(lspci | grep -i vga | tr '[:upper:]' '[:lower:]')
    if [[ $gpu == *"amd"* ]]; then
       echo 'amd'
-      return
    elif [[ $gpu == *"nvidia"* ]]; then
       echo 'nvidia'
-      return
-   else
+   elif [[ $gpu == *"intel"* ]]; then
       echo 'intel'
-      return
+   else
+      echo 'unknown'
    fi
 }
 
@@ -70,7 +69,7 @@ function detect_audio() {
    elif [[ -n "$(pgrep pulseaudio)" ]]; then
       echo 'pulse'
    else
-      echo 'none'
+      echo 'unknown'
    fi
 }
 
@@ -79,4 +78,24 @@ function sanity_check_for_container() {
       echo 1
    fi
    echo 0
+}
+
+function write_json() {
+   local field=$1
+   local value=$2
+   local path=$3
+
+   if [ ! -e "$path" ]; then
+      jq -n '{}' >"$path"
+   fi
+
+   jq --arg "$field" "$value" '. +=$ARGS.named' "$path" >"$path.tmp"
+
+   mv "$path.tmp" "$path"
+}
+
+function read_json_field() {
+   local field=$1
+   local path=$2
+   jq -r ".$field" "$path"
 }

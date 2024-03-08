@@ -10,7 +10,7 @@ source ./env.sh
 source ./helper-functions.sh
 source ./setup-env.sh
 
-if [ "$(sanity_check_for_container)" -eq 1 ]; then
+if ! sanity_check_for_container; then
    echor "Couldn't find alvr container."
    echor "Please report setup.log and list bellow to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues"
    distrobox list

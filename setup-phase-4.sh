@@ -34,16 +34,18 @@ if [[ "$GPU" == "amd" ]]; then
 elif [[ "$GPU" == "nvidia" ]]; then
    echog "Using host system driver mounts, not installing nvidia drivers."
    if [[ "$MULTI_GPU" == "1" ]]; then
-      echog "But installing prime-run for running steamvr, games on your DGPU."
+      echog "Installing prime-run for running steamvr, games on your dedicated GPU (experimental)."
       sudo pacman -q --noprogressbar -Syu prime-run --noconfirm --assume-installed nvidia-utils || exit 1
    fi
 elif [[ "$GPU" == "intel" ]]; then
-   sudo pacman -q --noprogressbar -Syu libva-mesa-driver vulkan-intel lib32-vulkan-intel lib32-libva-mesa-driver --noconfirm || exit 1
+   sudo pacman -q --noprogressbar -Syu libva-mesa-driver vulkan-intel lib32-vulkan-intel intel-media-driver lib32-libva-intel-driver libva-intel-driver --noconfirm || exit 1
    # Thanks marioeatsdirt for tip!
    echog "Installing older vulkan-intel driver as newest one (24.0 at the moment of writing) doesnt work on Intel."
    sudo pacman --noprogressbar -U \
       https://archive.archlinux.org/packages/v/vulkan-intel/vulkan-intel-23.1.4-2-x86_64.pkg.tar.zst \
       https://archive.archlinux.org/packages/l/lib32-vulkan-intel/lib32-vulkan-intel-23.1.4-2-x86_64.pkg.tar.zst --noconfirm || exit 1
+   echog "Pinning intel vulkan drivers"
+   sed -i 's/.*IgnorePkg.*/IgnorePkg = vulkan-intel lib32-vulkan-intel/g' /etc/pacman.conf || exit 1
 else
    echor "Unknown gpu, exiting."
    exit 1
@@ -64,7 +66,7 @@ sleep 2
 echog "Installed base packages and Steam. Opening steam. Please install SteamVR from it."
 
 # Define proper steam desktop file
-mkdir ~/.config
+mkdir ~/.config || exit 1
 xdg-mime default steam.desktop x-scheme-handler/steam
 
 steam steam://install/250820 &>/dev/null &
@@ -73,30 +75,6 @@ while [ ! -f "$HOME/.steam/steam/steamapps/common/SteamVR/bin/vrwebhelper/linux6
    sleep 5
 done
 sleep 3
-
-# todo: make this step automatic (protonup(+qt) doesn't have api for generic tools)
-echog "Installing SteamPlay-None for use with SteamVR."
-echor "Please set it as compatibility option in SteamVR options after Steam restart!"
-mkdir -p "$HOME/.steam/steam/compatibilitytools.d"
-wget https://github.com/Scrumplex/Steam-Play-None/archive/refs/heads/main.tar.gz
-tar xzf main.tar.gz -C "$HOME/.steam/steam/compatibilitytools.d"
-
-if [[ -n "$WAYLAND_DISPLAY" ]]; then
-   # Assuming that we only have one SteamVR installed, it will replace only for SteamVR
-   echog "Patching steam commandline options to allow proper steamvr launching on wayland."
-   if [[ $MULTI_GPU == "1" ]]; then
-      sed -iv 's|"LaunchOptions"[[:space:]]*""|"LaunchOptions"         "WAYLAND_DISPLAY='' prime-run %command%"|g' "$HOME/.steam/steam/userdata/80832101/config/localconfig.vdf" ||
-         echor "Couldn't patch wayland display variable om steamvr commandline options, you might want to set it manually: WAYLAND_DISPLAY='' prime-run %command%"
-   else
-      sed -iv 's|"LaunchOptions"[[:space:]]*""|"LaunchOptions"         "WAYLAND_DISPLAY='' %command%"|g' "$HOME/.steam/steam/userdata/80832101/config/localconfig.vdf" ||
-         echor "Couldn't patch wayland display variable om steamvr commandline options, you might want to set it manually: WAYLAND_DISPLAY='' %command%"
-   fi
-fi
-
-echog "Closing steam to apply commandline options and for SteamPlay-None"
-pkill steam
-sleep 3
-pkill -9 steam
 
 echog "Next prompt for superuser access prevents annoying popup from steamvr that prevents steamvr from launching automatically."
 distrobox-host-exec pkexec setcap CAP_SYS_NICE+ep "$HOME/.steam/steam/steamapps/common/SteamVR/bin/linux64/vrcompositor-launcher" ||
@@ -107,8 +85,36 @@ steam steam://run/250820 &>/dev/null &
 wait_for_initial_steamvr
 cleanup_alvr
 
+# todo: make this step automatic (protonup(+qt) doesn't have api for generic tools)
+{
+   echog "Installing SteamPlay-None for use with SteamVR."
+   mkdir -p "$HOME/.steam/steam/compatibilitytools.d"
+   wget https://github.com/Scrumplex/Steam-Play-None/archive/refs/heads/main.tar.gz
+   tar xzf main.tar.gz -C "$HOME/.steam/steam/compatibilitytools.d"
+} || exit 1
+
+echog "Re-opening steam to apply commandline options and for SteamPlay-None"
+pkill steam
+sleep 3
+pkill -9 steam
+sleep 5
+steam &>/dev/null &
+sleep 5
+
 echog "At this point you can safely add your existing library from your system if you had one."
-echog "Also set Steam Play None as compatibility option for SteamVR if you haven't already."
+echor "Please set SteamPlay-None as compatibility option in SteamVR options after Steam restart!"
+if [[ -z "$WAYLAND_DISPLAY" ]]; then
+   if [[ $MULTI_GPU == 1 ]]; then
+      echor "And put prime-run %command% into SteamVR commandline options"
+   fi
+else
+   if [[ $MULTI_GPU == 1 ]]; then
+      echor "And put WAYLAND_DISPLAY='' prime-run %command% into SteamVR commandline options"
+   else
+      echor "And put WAYLAND_DISPLAY='' %command% into SteamVR commandline options"
+   fi
+fi
+
 echog "When ready for next step, press enter to continue."
 read
 
@@ -121,7 +127,11 @@ echog "This installation script will download apk client for the headset later, 
 if [[ $IS_NIGHTLY -eq 1 ]] || [[ "$GPU" == "intel" ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
    paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
 else
-   paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+   if [[ $GPU == "nvidia" ]]; then
+      paru -q --noprogressbar -S rust alvr-nvidia --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver --assume-installed cuda || exit 1
+   else
+      paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+   fi
 fi
 # clear cache, alvr targets folder might take up to 10 gb
 yes | paru -q --noprogressbar -Scc || exit 1
@@ -143,10 +153,10 @@ sleep 2
 
 # installing wlxoverlay-s
 echog "For using desktop from inside vr instead of broken steamvr overlay, we will install WlxOverlay."
-wget -q --show-progress -O "$WLXOVERLAY_FILENAME" "$WLXOVERLAY_LINK"
+wget -q --show-progress -O "$WLXOVERLAY_FILENAME" "$WLXOVERLAY_LINK" || echor "Couldn't download WlxOverlay, please download it from $WLXOVERLAY_LINK manually."
 chmod +x "$WLXOVERLAY_FILENAME"
 if [[ -n "$WAYLAND_DISPLAY" ]]; then
-   echog "If you're not (on wlroots-based compositor like Sway), it will ask for display to choose. Choose each display individually."
+   echog "If you're not (on wlroots-based compositor like Sway), it will ask for display to choose. Choose each real display individually."
 fi
 ./"$WLXOVERLAY_FILENAME" &>/dev/null &
 if [[ -n "$WAYLAND_DISPLAY" ]]; then

@@ -13,8 +13,7 @@ function phase1_lilipod_distrobox_install() {
 
    if ! command -v getsubids &>/dev/null; then
       # Most likely for ubuntu 22.04 and older distros, related https://github.com/89luca89/lilipod/issues/7
-      echog "You don't seem to have getsubids command, i will use whipped one instead"
-      echog "But considering this fact, things might not work correctly for your distribution"
+      echog "You don't seem to have getsubids command, script will use whipped one instead"
       cp "../getsubids" "$prefix/bin/"
    else
       if ! getsubids -g "$(whoami)"; then
@@ -24,14 +23,23 @@ function phase1_lilipod_distrobox_install() {
    fi
 
    echog "Installing lilipod"
-   wget -O lilipod https://github.com/89luca89/lilipod/releases/download/v0.0.1/lilipod-linux-amd64
+   wget -O lilipod "https://github.com/89luca89/lilipod/releases/download/$lilipod_version/lilipod-linux-amd64" || exit 1
    chmod +x lilipod
-   mkdir -p "$prefix/bin"
-   mv lilipod "$prefix/bin"
+   mkdir -p "$prefix/bin" || exit 1
+   mv lilipod "$prefix/bin" || exit 1
 
    echog "Installing distrobox"
-   distrobox_version="1.7.0" # commit lock to not have sudden changes in behaviour
-   curl -s https://raw.githubusercontent.com/89luca89/distrobox/"$distrobox_version"/install | sh -s -- --prefix "$prefix"
+   curl -OL "https://github.com/89luca89/distrobox/archive/$distrobox_version.zip" || exit 1
+   unzip "$distrobox_version.zip" || ( echor "Please install unzip on your system."; exit 1 ) || exit 1
+   {
+      cd distrobox-$distrobox_version* || exit 1
+      ./install --prefix "$prefix" || exit 1
+      cd ..
+   }
+
+   # Work-arounding bug with lilipod not supporting --pids-limit that distrobox sets
+   # Remove after https://github.com/89luca89/distrobox/issues/1261 fix
+   sed -i 's/--pids-limit=-1//g' "$prefix/bin/distrobox-create"
 
    cd ..
 }
@@ -41,7 +49,7 @@ function phase2_distrobox_container_creation() {
    GPU=$(detect_gpu)
    AUDIO_SYSTEM=$(detect_audio)
 
-   # Sanity checks for phase 1
+   # Sanity checks after phase 1
    if [[ "$(which lilipod)" != "$prefix/bin/lilipod" ]]; then
       echor "Failed to install lilipod properly"
       exit 1
@@ -55,7 +63,8 @@ function phase2_distrobox_container_creation() {
    if [[ "$GPU" == "amd" ]] || [[ "$GPU" == "intel" ]]; then
       distrobox create --pull --image docker.io/archlinux/archlinux:latest \
          --name "$container_name" \
-         --home "$prefix/$container_name"
+         --home "$prefix/$container_name" \
+         --pre-init-hooks "pacman -Syy reflector --noconfirm && reflector --country 'Canada,United States,France,Germany,Australia' --latest 5 --sort rate --save /etc/pacman.d/mirrorlist"
    elif [[ "$GPU" == nvidia* ]]; then
       CUDA_LIBS="$(find /usr/lib* -iname "libcuda*.so*")"
       if [[ -z "$CUDA_LIBS" ]]; then
@@ -65,7 +74,8 @@ function phase2_distrobox_container_creation() {
       distrobox create --pull --image docker.io/archlinux/archlinux:latest \
          --name "$container_name" \
          --home "$prefix/$container_name" \
-         --nvidia
+         --nvidia \
+         --pre-init-hooks "pacman -Syy reflector --noconfirm && reflector --country 'Canada,United States,France,Germany,Australia' --latest 5 --sort rate --save /etc/pacman.d/mirrorlist"
    else
       echor "Unsupported gpu found, can't proceed. Please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       exit 1
@@ -84,14 +94,14 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
 
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-3.sh
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- ./setup-phase-3.sh
    if [ $? -ne 0 ]; then
       echor "Couldn't install distrobox container first time at phase 3, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc
       exit 1
    fi
    distrobox stop "$container_name" --yes
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- ./setup-phase-4.sh
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- ./setup-phase-4.sh
    if [ $? -ne 0 ]; then
       echor "Couldn't install distrobox container first time at phase 4, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc

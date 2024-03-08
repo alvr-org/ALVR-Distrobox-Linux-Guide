@@ -24,7 +24,8 @@ rm "$prefix/bin/lilipod"
 echog "Script will ask for sudo because it needs to remove container libpod files that can't be remove without superuser access"
 DBX_SUDO_PROGRAM="$ROOT_PERMS_COMMAND" distrobox rm --rm-home "$container_name" --force
 
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/1.7.0/uninstall | sh -s -- --prefix "$prefix"
+cd $prefix/distrobox-$distrobox_version*
+./uninstall --prefix "$prefix"
 
 echor "Be careful, superuser access requesting for deletion!"
 echor "Confirm deletion of $prefix folder? (y/n)"

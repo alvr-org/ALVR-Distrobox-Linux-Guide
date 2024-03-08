@@ -1,7 +1,11 @@
 #!/bin/bash
 
-DBX_CONTAINER_MANAGER=lilipod
+export DBX_CONTAINER_MANAGER=lilipod
 IS_NIGHTLY=0
+
+# Tool versions
+distrobox_version="5201a2d" # commit lock on that specific commit before https://github.com/89luca89/distrobox/issues/1261 gets fixed
+lilipod_version="v0.0.1"
 
 # Folder names
 prefix="installation-lilipod"

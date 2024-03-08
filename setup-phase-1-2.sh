@@ -30,7 +30,10 @@ function phase1_lilipod_distrobox_install() {
 
    echog "Installing distrobox"
    curl -OL "https://github.com/89luca89/distrobox/archive/$distrobox_version.zip" || exit 1
-   unzip "$distrobox_version.zip" || ( echor "Please install unzip on your system."; exit 1 ) || exit 1
+   unzip "$distrobox_version.zip" || (
+      echor "Please install unzip on your system."
+      exit 1
+   ) || exit 1
    {
       cd distrobox-$distrobox_version* || exit 1
       ./install --prefix "$prefix" || exit 1
@@ -40,6 +43,9 @@ function phase1_lilipod_distrobox_install() {
    # Work-arounding bug with lilipod not supporting --pids-limit that distrobox sets
    # Remove after https://github.com/89luca89/distrobox/issues/1261 fix
    sed -i 's/--pids-limit=-1//g' "$prefix/bin/distrobox-create"
+
+   # distrobox-generate-entry doesn't respect DBX_CONTAINER_MANAGER! report & fix upstream
+   sed -i 's/container_manager="autodetect"/container_manager="lilipod"/g' "$prefix/bin/distrobox-generate-entry"
 
    cd ..
 }

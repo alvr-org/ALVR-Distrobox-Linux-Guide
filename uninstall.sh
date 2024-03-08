@@ -19,10 +19,11 @@ fi
 lilipod stop "$container_name" 2>/dev/null
 lilipod rm "$container_name"
 lilipod rmi "$container_name"
-rm "$prefix/bin/lilipod"
 
 echog "Script will ask for sudo because it needs to remove container libpod files that can't be remove without superuser access"
 DBX_SUDO_PROGRAM="$ROOT_PERMS_COMMAND" distrobox rm --rm-home "$container_name" --force
+
+rm "$prefix/bin/lilipod"
 
 cd $prefix/distrobox-$distrobox_version*
 ./uninstall --prefix "$prefix"

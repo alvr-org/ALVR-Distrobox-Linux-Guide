@@ -114,7 +114,7 @@ function sanity_checks() {
       echo "Please don't run this script as root (no sudo)."
       exit 1
    fi
-   if [[ -e "$prefix/arch-alvr" ]]; then
+   if [[ -e "$prefix/$container_name" ]]; then
       echor "You're trying to overwrite previous installation with new installation, please use uninstall.sh first"
       exit 1
    fi

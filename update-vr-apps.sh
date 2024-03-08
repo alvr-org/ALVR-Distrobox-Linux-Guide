@@ -18,10 +18,25 @@ if [ "$(sanity_check_for_container)" -eq 1 ]; then
 fi
 
 echog "Updating arch container, alvr"
+distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm'
+distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -Q alvr'
+ALVR_STABLE_OUT=$?
+distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -Q alvr-git'
+ALVR_NIGHTLY_OUT=$?
 if [[ $IS_NIGHTLY -eq 1 ]]; then
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm && paru -q --noprogressbar -Syu alvr-git --noconfirm'
+   if [[ $ALVR_STABLE_OUT -eq 0 ]]; then
+      distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
+         -- 'paru -Runs alvr --noconfirm'
+   fi
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
+      -- 'paru -q --noprogressbar -Syu alvr-git --noconfirm'
 else
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env prefix='$prefix' --env container_name='$container_name'" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm && paru -q --noprogressbar -Syu alvr --noconfirm'
+   if [[ $ALVR_NIGHTLY_OUT -eq 0 ]]; then
+      distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
+         -- 'paru -Runs alvr-git --noconfirm'
+   fi
+   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
+      -- 'paru -q --noprogressbar -Syu alvr --noconfirm'
 fi
 
 echog "Downloading alvr apk"

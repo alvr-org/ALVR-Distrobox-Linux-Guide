@@ -11,15 +11,11 @@ function phase1_lilipod_distrobox_install() {
       exit 1
    }
 
-   if ! command -v getsubids &>/dev/null; then
-      # Most likely for ubuntu 22.04 and older distros, related https://github.com/89luca89/lilipod/issues/7
-      echog "You don't seem to have getsubids command, script will use whipped one instead"
-      cp "../getsubids" "$prefix/bin/"
-   else
-      if ! getsubids -g "$(whoami)"; then
-         echor "Couldn't verify getsubids command, do you have updated getsubid/shadow package?"
-         exit 1
-      fi
+   echog "Using shipped getsubids"
+   cp "../getsubids" "$prefix/bin/"
+   if [[ "$(which getsubids)" != "$prefix/bin/getsubids" ]]; then
+      echor "Failed to install getsubids properly"
+      exit 1
    fi
 
    echog "Installing lilipod"

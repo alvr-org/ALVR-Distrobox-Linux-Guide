@@ -45,7 +45,7 @@ elif [[ "$GPU" == "intel" ]]; then
       https://archive.archlinux.org/packages/v/vulkan-intel/vulkan-intel-23.1.4-2-x86_64.pkg.tar.zst \
       https://archive.archlinux.org/packages/l/lib32-vulkan-intel/lib32-vulkan-intel-23.1.4-2-x86_64.pkg.tar.zst --noconfirm || exit 1
    echog "Pinning intel vulkan drivers"
-   sed -i 's/.*IgnorePkg.*/IgnorePkg = vulkan-intel lib32-vulkan-intel/g' /etc/pacman.conf || exit 1
+   sudo sed -i 's/.*IgnorePkg.*/IgnorePkg = vulkan-intel lib32-vulkan-intel/g' /etc/pacman.conf || exit 1
 else
    echor "Unknown gpu, exiting."
    exit 1

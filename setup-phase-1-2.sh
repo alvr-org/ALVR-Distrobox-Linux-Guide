@@ -152,6 +152,7 @@ function install_jq() {
    # Install jq to local PATH for script
    mkdir -p "$prefix/bin"
    wget -q --show-progress -O "$prefix/bin/jq" https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
+   chmod +x "$prefix/bin/jq"
 }
 
 install_jq

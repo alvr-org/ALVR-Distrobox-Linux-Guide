@@ -11,7 +11,7 @@ function phase1_lilipod_distrobox_install() {
       exit 1
    }
 
-   if [ -s "/etc/subgid" ] || [ -s "/etc/subuid" ]; then # only manjaro had those files missing so far
+   if [ ! -s "/etc/subgid" ] || [ ! -s "/etc/subuid" ]; then # only manjaro had those files missing so far
       echor "You seem to be missing subgid or subuid which is required for rootless containers to work"
       echog "I can create those for you, next sudo prompt will ask for permissions from you to do so."
       echog "Confirm if you're okay with proceesing (y/N)"

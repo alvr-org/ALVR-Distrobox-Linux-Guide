@@ -19,26 +19,19 @@ fi
 
 echog "Updating arch container, alvr"
 distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm'
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -Q alvr'
-ALVR_STABLE_OUT=$?
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -Q alvr-git'
-ALVR_NIGHTLY_OUT=$?
-if [[ $IS_NIGHTLY -eq 1 ]]; then
-   if [[ $ALVR_STABLE_OUT -eq 0 ]]; then
-      distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
-         -- 'paru -Runs alvr --noconfirm'
+(
+   cd "$prefix" || exit 1
+   rm "$ALVR_STREAMER_NAME"
+   rm -r "$container_name/alvr_streamer_linux"
+   if [[ $IS_NIGHTLY -eq 1 ]]; then
+      wget -q --show-progress "$ALVR_NIGHTLY_STREAMER_LINK" || exit 1
+   else
+      wget -q --show-progress "$ALVR_STABLE_STREAMER_LINK" || exit 1
    fi
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
-      -- 'paru -q --noprogressbar -Syu alvr-git --noconfirm'
-else
-   if [[ $ALVR_NIGHTLY_OUT -eq 0 ]]; then
-      distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
-         -- 'paru -Runs alvr-git --noconfirm'
-   fi
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" \
-      -- 'paru -q --noprogressbar -Syu alvr --noconfirm'
-fi
-
+   chmod +x "$ALVR_STREAMER_NAME"
+   ./"$ALVR_STREAMER_NAME" --appimage-extract
+   mv squashfs-root "$container_name/alvr_streamer_linux" || exit 1
+)
 echog "Downloading alvr apk"
 rm "$prefix/alvr_client_android.apk"
 if [[ $IS_NIGHTLY -eq 1 ]]; then

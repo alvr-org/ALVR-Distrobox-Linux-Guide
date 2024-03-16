@@ -83,7 +83,7 @@ distrobox-host-exec pkexec setcap CAP_SYS_NICE+ep "$HOME/.steam/steam/steamapps/
 echog "Running steamvr once to generate startup files."
 steam steam://run/250820 &>/dev/null &
 wait_for_initial_steamvr
-cleanup_alvr
+cleanup_steamvr
 
 # todo: make this step automatic (protonup(+qt) doesn't have api for generic tools)
 {
@@ -93,7 +93,7 @@ cleanup_alvr
    tar xzf main.tar.gz -C "$HOME/.steam/steam/compatibilitytools.d"
 } || exit 1
 
-echog "Re-opening steam to apply commandline options and for SteamPlay-None"
+echog "Re-opening steam for SteamPlay-None to appear in Steam"
 pkill steam
 sleep 3
 pkill -9 steam
@@ -121,23 +121,23 @@ read
 export STEP_INDEX=3
 sleep 2
 
-echog "Installing alvr, compilation might take a loong time (up to 15-20 minutes or more depending on CPU)."
-echog "If during compiling you think it's frozen, don't close it, it's still compiling."
 echog "This installation script will download apk client for the headset later, but you shouldn't connect it to alvr during this script installation, leave it to post install."
 if [[ "$GPU" == "intel" ]] && [[ $IS_NIGHTLY -eq 0 ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
    echog "Intel support for ALVR is experimental and requires nightly, so it will be installed of stable release."
    echog "Please use nightly client (will be downloaded later during this installation)"
 fi
 if [[ $IS_NIGHTLY -eq 1 ]] || [[ "$GPU" == "intel" ]]; then # fixme: temporarily nightly for intel, remove check after new release (>20.6.1)
-   paru -q --noprogressbar -S rust alvr-git --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
+   wget -q --show-progress "$ALVR_NIGHTLY_STREAMER_LINK" || exit 1
+   chmod +x "$ALVR_STREAMER_NAME"
+   ./"$ALVR_STREAMER_NAME" --appimage-extract
+   mv squashfs-root "$container_name/alvr_streamer_linux" || exit 1
 else
-   if [[ $GPU == "nvidia" ]]; then
-      paru -q --noprogressbar -S rust alvr-nvidia --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver --assume-installed cuda || exit 1
-   else
-      paru -q --noprogressbar -S rust alvr --noconfirm --assume-installed vulkan-driver --assume-installed lib32-vulkan-driver || exit 1
-   fi
+   wget -q --show-progress "$ALVR_STABLE_STREAMER_LINK" || exit 1
+   chmod +x "$ALVR_STREAMER_NAME"
+   ./"$ALVR_STREAMER_NAME" --appimage-extract
+   mv squashfs-root "$container_name/alvr_streamer_linux" || exit 1
 fi
-# clear cache, alvr targets folder might take up to 10 gb
+export PATH="$prefix/$container_name/alvr_streamer_linux/usr/bin:$PATH"
 yes | paru -q --noprogressbar -Scc || exit 1
 alvr_dashboard &>/dev/null &
 echog "ALVR and dashboard now launch. Proceed with setup wizard in Installation tab -> Run setup wizard and after finishing it, continue there."
@@ -176,7 +176,7 @@ sleep 2
 # patching steamvr (without it, steamvr might lag to hell)
 ../patch_bindings_spam.sh "$HOME/.steam/steam/steamapps/common/SteamVR"
 
-cleanup_alvr
+cleanup_steamvr
 cd ..
 
 STEP_INDEX=6

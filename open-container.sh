@@ -17,4 +17,4 @@ if [ "$(sanity_check_for_container)" -eq 1 ]; then
    exit 1
 fi
 
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8"
+distrobox enter --name "$container_name" --additional-flags "--env PATH=$prefix/$container_name/alvr_streamer_linux/usr/bin:$PATH --env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8"

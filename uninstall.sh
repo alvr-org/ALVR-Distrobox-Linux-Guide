@@ -29,7 +29,7 @@ cd $prefix/distrobox-$distrobox_version*
 ./uninstall --prefix "$prefix"
 
 echor "Be careful, superuser access requesting for deletion!"
-echor "Confirm deletion of $prefix folder? (y/n)"
+echor "Confirm deletion of $prefix folder? (y/N)"
 read -r CONFIRM_DELETE
 if [ "$CONFIRM_DELETE" = "y" ] || [ "$CONFIRM_DELETE" = "Y" ]; then
    "$ROOT_PERMS_COMMAND" rm -rf "$prefix"

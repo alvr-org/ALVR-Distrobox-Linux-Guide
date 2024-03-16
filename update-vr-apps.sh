@@ -17,8 +17,7 @@ if [ "$(sanity_check_for_container)" -eq 1 ]; then
    exit 1
 fi
 
-echog "Updating arch container, alvr"
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic" -- 'paru -q --noprogressbar -Sy archlinux-keyring --noconfirm'
+echog "Updating alvr"
 (
    cd "$prefix" || exit 1
    rm "$ALVR_STREAMER_NAME"

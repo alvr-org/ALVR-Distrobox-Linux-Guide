@@ -35,7 +35,7 @@ elif [[ "$GPU" == "nvidia" ]]; then
    echog "Using host system driver mounts, not installing nvidia drivers."
    if [[ "$MULTI_GPU" == "1" ]]; then
       echog "Installing prime-run for running steamvr, games on your dedicated GPU (experimental)."
-      sudo pacman -q --noprogressbar -Syu prime-run --noconfirm --assume-installed nvidia-utils || exit 1
+      sudo pacman -q --noprogressbar -Syu nvidia-prime --noconfirm --assume-installed nvidia-utils || exit 1
    fi
 elif [[ "$GPU" == "intel" ]]; then
    sudo pacman -q --noprogressbar -Syu libva-mesa-driver vulkan-intel lib32-vulkan-intel intel-media-driver lib32-libva-intel-driver libva-intel-driver --noconfirm || exit 1

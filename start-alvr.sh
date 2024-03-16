@@ -20,4 +20,4 @@ fi
 echog "Starting up Steam"
 distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- steam &>/dev/null &
 echog "Starting up ALVR"
-distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- alvr_dashboard
+distrobox enter --name "$container_name" --additional-flags "--env PATH=$prefix/$container_name/alvr_streamer_linux/usr/bin:$PATH --env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- alvr_dashboard

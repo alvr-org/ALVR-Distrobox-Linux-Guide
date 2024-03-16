@@ -16,8 +16,8 @@ function echor() {
    echo -e "${RED}${STEP_INDEX}${NC} : ${RED}$1${NC}"
    sleep 0.5
 }
-function cleanup_alvr() {
-   echog "Cleaning up ALVR"
+function cleanup_steamvr() {
+   echog "Cleaning up SteamVR"
    for vrp in "${STEAMVR_PROCESSES[@]}"; do
       pkill -f $vrp
    done

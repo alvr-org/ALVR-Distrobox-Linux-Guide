@@ -12,6 +12,9 @@ prefix="installation-lilipod"
 container_name="arch-alvr"
 
 # Links
+ALVR_STABLE_STREAMER_LINK='https://github.com/alvr-org/ALVR/releases/download/v20.6.1/ALVR-x86_64.AppImage'
+ALVR_NIGHTLY_STREAMER_LINK='https://github.com/alvr-org/ALVR-nightly/releases/latest/download/ALVR-x86_64.AppImage'
+ALVR_STREAMER_NAME='ALVR-x86_64.AppImage'
 ALVR_APK_LINK='https://github.com/alvr-org/ALVR/releases/download/v20.6.1/alvr_client_android.apk'
 NIGHTLY_ALVR_APK_LINK='https://github.com/alvr-org/ALVR-nightly/releases/latest/download/alvr_client_android.apk'
 ALVR_APK_NAME='alvr_client_android.apk'

@@ -112,7 +112,7 @@ function phase2_distrobox_container_creation() {
       exit 1
    fi
    distrobox stop "$container_name" --yes
-   distrobox enter --name "$container_name" --additional-flags "--env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- ./setup-phase-4.sh
+   distrobox enter --name "$container_name" --additional-flags "--env PATH=$prefix/$container_name/alvr_streamer_linux/usr/bin:$PATH --env XDG_CURRENT_DESKTOP=X-Generic --env LANG=en_US.UTF-8 --env LC_ALL=en_US.UTF-8" -- ./setup-phase-4.sh
    if [ $? -ne 0 ]; then
       echor "Couldn't install distrobox container first time at phase 4, please report setup.log to https://github.com/alvr-org/ALVR-Distrobox-Linux-Guide/issues."
       # envs are required! otherwise first time install won't have those env vars, despite them being even in bashrc, locale conf, profiles, etc

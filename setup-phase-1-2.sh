@@ -49,12 +49,8 @@ function phase1_lilipod_distrobox_install() {
       cd ..
    }
 
-   # Work-arounding bug with lilipod not supporting --pids-limit that distrobox sets
-   # Remove after https://github.com/89luca89/distrobox/issues/1261 fix
-   sed -i 's/--pids-limit=-1//g' "$prefix/bin/distrobox-create"
-
-   # distrobox-generate-entry doesn't respect DBX_CONTAINER_MANAGER! Remove after updating distrobox and https://github.com/89luca89/distrobox/pull/1269
-   sed -i 's/container_manager="autodetect"/container_manager="lilipod"/g' "$prefix/bin/distrobox-generate-entry"
+   # distrobox-enter has bug with unshare_groups and lilipod (lilipod probably doesnt support them) https://github.com/89luca89/distrobox/pull/1261
+   sed -i 's/unshare_groups={{ index .Config.Labels "distrobox.unshare_groups" }};//g' "$prefix/bin/distrobox-enter"
 
    cd ..
 }
